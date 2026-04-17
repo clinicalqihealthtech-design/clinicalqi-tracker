@@ -154,10 +154,10 @@ a{color:var(--green-dark);}
         </div>
         <input type="hidden" id="f-source" value="Bank"/>
       </div>
-      <div class="field"><label>Description</label><input type="text" id="f-desc" placeholder="What was this expense for?"/></div>
-      <div class="field"><label>Notes / Receipt ref</label><textarea id="f-notes" placeholder="Invoice number, vendor, or any notes…"></textarea></div>
+      <div class="field"><label>Description <span style="font-weight:400;color:var(--text3)">(optional)</span></label><input type="text" id="f-desc" placeholder="What was this expense for?"/></div>
+      <div class="field"><label>Notes / Receipt ref <span style="font-weight:400;color:var(--text3)">(optional)</span></label><textarea id="f-notes" placeholder="Invoice number, vendor, or any notes…"></textarea></div>
       <div class="field">
-        <label>Receipt photo / screenshot</label>
+        <label>Receipt photo / screenshot <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
         <div class="receipt-upload">
           <input type="file" id="f-receipt" accept="image/*,application/pdf" onchange="handleReceiptSelect(event)"/>
           <span id="receipt-label">📎 Tap to attach photo or PDF</span>
@@ -354,10 +354,30 @@ function clearReceipt(){
   document.getElementById('receipt-label').textContent='📎 Tap to attach photo or PDF';
   document.getElementById('receipt-thumb').src='';
 }
-async function callAPI(prompt){
-  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,mcp_servers:[{type:'url',url:DRIVE_MCP,name:'gdrive'}],messages:[{role:'user',content:prompt}]})});
+async function appendToSheet(sheetName, values){
+  const body={values:[values]};
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(sheetName)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+await getToken()},body:JSON.stringify(body)});
+  if(!res.ok){const t=await res.text();throw new Error('Sheets error: '+t);}
+  return res.json();
+}
+async function getToken(){
+  const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer'})});
+  if(!r.ok)throw new Error('token');
+  const d=await r.json();return d.access_token;
+}
+async function callDriveMCP(prompt){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,mcp_servers:[{type:'url',url:DRIVE_MCP,name:'gdrive'}],messages:[{role:'user',content:prompt}]})});
   if(!res.ok)throw new Error('api '+res.status);
   return res.json();
+}
+async function syncToSheets(sheetName, values){
+  const prompt=`Append exactly one new data row to the Google Spreadsheet with ID "${SHEET_ID}", in the sheet tab named "${sheetName}". The row values are (in order): ${values.map((v,i)=>`column ${i+1}: "${v}"`).join(', ')}. Do not modify any existing rows. Just append the new row at the bottom.`;
+  const data=await callDriveMCP(prompt);
+  const text=data.content?.filter(c=>c.type==='text').map(c=>c.text).join('').toLowerCase();
+  if(!text||(!text.includes('append') && !text.includes('added') && !text.includes('row') && !text.includes('success') && !text.includes('done') && !text.includes('written') && !text.includes('insert'))){
+    throw new Error('Sheets append may have failed: '+text.substring(0,100));
+  }
 }
 async function saveExpense(){
   const date=document.getElementById('f-date').value;
@@ -366,7 +386,7 @@ async function saveExpense(){
   const source=document.getElementById('f-source').value;
   const desc=document.getElementById('f-desc').value.trim();
   const notes=document.getElementById('f-notes').value.trim();
-  if(!date||!amount||!category||!desc){setStatus('save-status','Date, amount, category and description are required','err');return;}
+  if(!date||!amount||!category){setStatus('save-status','Date, amount and category are required','err');return;}
   const btn=document.getElementById('save-btn');btn.disabled=true;
   setStatus('save-status','Saving…','');
   const entry={date,amount:parseFloat(amount),category,source,desc,notes,receiptName:receiptFile?receiptFile.name:'',receiptLink:'',ts:new Date().toISOString()};
@@ -375,16 +395,16 @@ async function saveExpense(){
     if(receiptFile&&receiptB64){
       setStatus('save-status','Uploading receipt…','');
       try{
-        const ud=await callAPI(`Upload a file to Google Drive folder ID "${FOLDER_ID}". File name: "receipt_${date}_${desc.replace(/\s+/g,'_').substring(0,25)}.${receiptFile.name.split('.').pop()}", MIME type: "${receiptFile.type}", base64: ${receiptB64.substring(0,300)}[truncated]. Return the shareable link.`);
+        const fname=`receipt_${date}_${(desc||category).replace(/\s+/g,'_').substring(0,25)}.${receiptFile.name.split('.').pop()}`;
+        const ud=await callDriveMCP(`Upload a file to Google Drive folder ID "${FOLDER_ID}". File name: "${fname}", MIME type: "${receiptFile.type}", base64 encoded content: ${receiptB64}. Make it shareable and return the view link.`);
         const txt=ud.content?.filter(c=>c.type==='text').map(c=>c.text).join('');
         const m=txt&&txt.match(/https:\/\/[^\s"'<>]+/);
         if(m)receiptLink=m[0];
-      }catch(e){}
+      }catch(e){console.warn('receipt upload failed',e);}
       entry.receiptLink=receiptLink;
     }
     setStatus('save-status','Saving to Sheets…','');
-    const row=[date,Math.round(parseFloat(amount)),category,source,desc,notes,receiptLink,entry.ts].join('\t');
-    await callAPI(`Append exactly one new row to the sheet tab named "Expenses" in Google Sheet ID "${SHEET_ID}". Do not edit existing rows. Tab-separated values:\n${row}\nColumns: Date, Amount, Category, Source, Description, Notes, Receipt Link, Saved At.`);
+    await syncToSheets('Expenses',[date,Math.round(parseFloat(amount)),category,source,desc,notes,receiptLink,entry.ts]);
     expenses.unshift(entry);persist();clearReceipt();
     document.getElementById('f-amount').value='';document.getElementById('f-desc').value='';
     document.getElementById('f-notes').value='';document.getElementById('f-category').value='';
@@ -392,8 +412,9 @@ async function saveExpense(){
     document.getElementById('f-source').value='Bank';
     setStatus('save-status','Saved to Google Sheets ✓','ok');
   }catch(err){
+    console.error(err);
     expenses.unshift(entry);persist();
-    setStatus('save-status','Saved locally — Sheets sync failed.','err');
+    setStatus('save-status','Saved locally — Sheets: '+err.message.substring(0,60),'err');
   }
   btn.disabled=false;
 }
@@ -402,20 +423,20 @@ async function saveBank(){
   const amount=document.getElementById('b-amount').value;
   const desc=document.getElementById('b-desc').value.trim();
   const notes=document.getElementById('b-notes').value.trim();
-  if(!date||!amount||!desc){setStatus('bank-status','Date, amount and description are required','err');return;}
+  if(!date||!amount){setStatus('bank-status','Date and amount are required','err');return;}
   const btn=document.getElementById('bank-btn');btn.disabled=true;
   setStatus('bank-status','Saving…','');
   const entry={date,type:txType,amount:parseFloat(amount),desc,notes,ts:new Date().toISOString()};
   try{
-    const row=[date,txType==='deposit'?'Deposit':'Withdrawal',Math.round(parseFloat(amount)),desc,notes,entry.ts].join('\t');
-    await callAPI(`Append exactly one new row to the sheet tab named "Bank" in Google Sheet ID "${SHEET_ID}". Do not edit existing rows. Tab-separated values:\n${row}\nColumns: Date, Type, Amount, Description, Notes, Saved At.`);
+    await syncToSheets('Bank',[date,txType==='deposit'?'Deposit':'Withdrawal',Math.round(parseFloat(amount)),desc,notes,entry.ts]);
     bank.unshift(entry);persist();
     document.getElementById('b-amount').value='';document.getElementById('b-desc').value='';document.getElementById('b-notes').value='';
     setStatus('bank-status','Saved to Google Sheets ✓','ok');
     renderBankList();
   }catch(err){
+    console.error(err);
     bank.unshift(entry);persist();
-    setStatus('bank-status','Saved locally — Sheets sync failed.','err');
+    setStatus('bank-status','Saved locally — Sheets: '+err.message.substring(0,60),'err');
     renderBankList();
   }
   btn.disabled=false;
