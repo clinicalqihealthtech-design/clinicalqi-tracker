@@ -245,22 +245,42 @@ a{color:var(--green-dark);}
   <!-- SETTINGS -->
   <div class="page" id="page-settings">
     <div class="card">
-      <div class="section-title" style="margin-bottom:12px">Google Sheet setup</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:14px;">
-        Create a Google Sheet with <strong>two tabs</strong>:<br>
-        <strong>Tab 1 — Expenses:</strong><br>
-        <code>Date | Amount | Category | Source | Description | Notes | Receipt Link | Saved At</code><br><br>
-        <strong>Tab 2 — Bank:</strong><br>
-        <code>Date | Type | Amount | Description | Notes | Saved At</code>
+      <div class="section-title" style="margin-bottom:12px">Apps Script URL</div>
+      <div class="field">
+        <label>Web App URL</label>
+        <input type="text" id="s-scripturl" placeholder="https://script.google.com/macros/s/…/exec"/>
+        <div class="hint">Paste the URL after deploying the Apps Script (see steps below)</div>
       </div>
-      <div style="font-size:13px;color:var(--green-dark);font-weight:600;">Sheet ID & Drive Folder ID are pre-configured in this app.</div>
+      <button class="btn" onclick="saveScriptUrl()">Save URL</button>
+      <div class="status" id="settings-status"></div>
     </div>
     <div class="card">
-      <div class="section-title" style="margin-bottom:12px">Add to home screen</div>
+      <div class="section-title" style="margin-bottom:12px">One-time setup (5 min)</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.9;">
+        <strong>Step 1 — Set up your Google Sheet</strong><br>
+        Open your Sheet → create two tabs named exactly:<br>
+        <code>Expenses</code> and <code>Bank</code><br><br>
+        Add header row in <strong>Expenses</strong>:<br>
+        <code>Date | Amount | Category | Source | Description | Notes | Receipt | Saved At</code><br><br>
+        Add header row in <strong>Bank</strong>:<br>
+        <code>Date | Type | Amount | Description | Notes | Saved At</code><br><br>
+        <strong>Step 2 — Create Apps Script</strong><br>
+        In your Sheet → <strong>Extensions → Apps Script</strong><br>
+        Delete any existing code, paste the contents of <code>appsscript.gs</code><br><br>
+        <strong>Step 3 — Deploy</strong><br>
+        Click <strong>Deploy → New deployment</strong><br>
+        Type: <strong>Web app</strong><br>
+        Execute as: <strong>Me</strong><br>
+        Who has access: <strong>Anyone</strong><br>
+        Click Deploy → copy the Web App URL<br><br>
+        <strong>Step 4</strong> — Paste the URL above and tap Save URL
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:8px">Add to home screen</div>
       <div style="font-size:13px;color:var(--text2);line-height:1.8;">
-        <strong>iPhone/Safari:</strong> Tap the Share button → "Add to Home Screen"<br>
-        <strong>Android/Chrome:</strong> Tap the 3-dot menu → "Add to Home Screen"<br><br>
-        The app will open full-screen like a native app.
+        <strong>iPhone/Safari:</strong> Share → "Add to Home Screen"<br>
+        <strong>Android/Chrome:</strong> 3-dot menu → "Add to Home Screen"
       </div>
     </div>
   </div>
@@ -320,6 +340,18 @@ function showPage(page,btn){
   btn.classList.add('active');
   if(page==='dashboard')loadDashboard();
   if(page==='bank')renderBankList();
+  if(page==='settings'){
+    const u=localStorage.getItem('cqi_script_url')||'';
+    document.getElementById('s-scripturl').value=u;
+    document.getElementById('settings-status').textContent=u?'URL saved ✓':'';
+    document.getElementById('settings-status').className='status'+(u?' ok':'');
+  }
+}
+function saveScriptUrl(){
+  const u=document.getElementById('s-scripturl').value.trim();
+  if(!u){setStatus('settings-status','Please paste the Apps Script URL','err');return;}
+  localStorage.setItem('cqi_script_url',u);
+  setStatus('settings-status','Saved ✓','ok');
 }
 function setSrc(el,val){
   document.querySelectorAll('.src-pill').forEach(p=>p.classList.remove('on'));
@@ -354,30 +386,11 @@ function clearReceipt(){
   document.getElementById('receipt-label').textContent='📎 Tap to attach photo or PDF';
   document.getElementById('receipt-thumb').src='';
 }
-async function appendToSheet(sheetName, values){
-  const body={values:[values]};
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(sheetName)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
-  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+await getToken()},body:JSON.stringify(body)});
-  if(!res.ok){const t=await res.text();throw new Error('Sheets error: '+t);}
-  return res.json();
-}
-async function getToken(){
-  const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer'})});
-  if(!r.ok)throw new Error('token');
-  const d=await r.json();return d.access_token;
-}
-async function callDriveMCP(prompt){
-  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,mcp_servers:[{type:'url',url:DRIVE_MCP,name:'gdrive'}],messages:[{role:'user',content:prompt}]})});
-  if(!res.ok)throw new Error('api '+res.status);
-  return res.json();
-}
-async function syncToSheets(sheetName, values){
-  const prompt=`Append exactly one new data row to the Google Spreadsheet with ID "${SHEET_ID}", in the sheet tab named "${sheetName}". The row values are (in order): ${values.map((v,i)=>`column ${i+1}: "${v}"`).join(', ')}. Do not modify any existing rows. Just append the new row at the bottom.`;
-  const data=await callDriveMCP(prompt);
-  const text=data.content?.filter(c=>c.type==='text').map(c=>c.text).join('').toLowerCase();
-  if(!text||(!text.includes('append') && !text.includes('added') && !text.includes('row') && !text.includes('success') && !text.includes('done') && !text.includes('written') && !text.includes('insert'))){
-    throw new Error('Sheets append may have failed: '+text.substring(0,100));
-  }
+async function syncToSheets(tab, row){
+  const scriptUrl=localStorage.getItem('cqi_script_url');
+  if(!scriptUrl)throw new Error('No Apps Script URL set — go to Settings');
+  const res=await fetch(scriptUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({tab,row})});
+  // no-cors means we can't read response — assume success if no network error thrown
 }
 async function saveExpense(){
   const date=document.getElementById('f-date').value;
@@ -391,20 +404,8 @@ async function saveExpense(){
   setStatus('save-status','Saving…','');
   const entry={date,amount:parseFloat(amount),category,source,desc,notes,receiptName:receiptFile?receiptFile.name:'',receiptLink:'',ts:new Date().toISOString()};
   try{
-    let receiptLink='';
-    if(receiptFile&&receiptB64){
-      setStatus('save-status','Uploading receipt…','');
-      try{
-        const fname=`receipt_${date}_${(desc||category).replace(/\s+/g,'_').substring(0,25)}.${receiptFile.name.split('.').pop()}`;
-        const ud=await callDriveMCP(`Upload a file to Google Drive folder ID "${FOLDER_ID}". File name: "${fname}", MIME type: "${receiptFile.type}", base64 encoded content: ${receiptB64}. Make it shareable and return the view link.`);
-        const txt=ud.content?.filter(c=>c.type==='text').map(c=>c.text).join('');
-        const m=txt&&txt.match(/https:\/\/[^\s"'<>]+/);
-        if(m)receiptLink=m[0];
-      }catch(e){console.warn('receipt upload failed',e);}
-      entry.receiptLink=receiptLink;
-    }
     setStatus('save-status','Saving to Sheets…','');
-    await syncToSheets('Expenses',[date,Math.round(parseFloat(amount)),category,source,desc,notes,receiptLink,entry.ts]);
+    await syncToSheets('Expenses',[date,Math.round(parseFloat(amount)),category,source,desc,notes,entry.receiptName,entry.ts]);
     expenses.unshift(entry);persist();clearReceipt();
     document.getElementById('f-amount').value='';document.getElementById('f-desc').value='';
     document.getElementById('f-notes').value='';document.getElementById('f-category').value='';
