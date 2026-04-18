@@ -11,14 +11,13 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --green:#1D9E75;--green-light:#E1F5EE;--green-dark:#0F6E56;--green-deep:#04342C;
+  --green:#1D9E75;--green-light:#E1F5EE;--green-dark:#0F6E56;
   --blue:#378ADD;--blue-light:#E6F1FB;--blue-dark:#185FA5;
   --amber:#BA7517;--amber-light:#FAEEDA;--amber-dark:#633806;
   --red:#E24B4A;--red-light:#FCEBEB;--red-dark:#A32D2D;
   --purple:#7F77DD;--purple-light:#EEEDFE;--purple-dark:#3C3489;
   --gray:#888780;--gray-light:#F1EFE8;--gray-dark:#444441;
   --pink:#D4537E;--pink-light:#FBEAF0;--pink-dark:#993556;
-  --teal-mid:#9FE1CB;
   --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0efec;
   --text:#1a1a18;--text2:#6b6b67;--text3:#a0a09b;
   --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
@@ -28,21 +27,15 @@
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;padding-bottom:calc(70px + var(--safe-bottom));}
 .app{max-width:480px;margin:0 auto;}
-
-/* Header */
 .header{background:var(--bg);border-bottom:0.5px solid var(--border);padding:calc(12px + var(--safe-top)) 16px 12px;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:10px;}
 .logo{width:30px;height:30px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .logo svg{width:16px;height:16px;}
 .app-title{font-size:15px;font-weight:600;color:var(--text);}
 .app-sub{font-size:11px;color:var(--text2);}
-
-/* Bottom tab bar */
 .tabbar{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:0.5px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);z-index:10;}
 .tabbar-btn{flex:1;padding:10px 4px 8px;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text3);font-size:10px;font-weight:500;}
 .tabbar-btn.active{color:var(--green);}
 .tabbar-btn svg{width:22px;height:22px;}
-
-/* Content */
 .page{display:none;padding:16px;}
 .page.active{display:block;}
 .card{background:var(--bg);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
@@ -52,37 +45,25 @@ input,select,textarea{width:100%;font-size:15px;padding:11px 13px;border:1px sol
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green);}
 textarea{resize:vertical;min-height:60px;}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-
-/* Source pills */
 .src-pills{display:flex;gap:6px;flex-wrap:wrap;}
 .src-pill{padding:8px 14px;font-size:13px;font-weight:500;border:1px solid var(--border2);border-radius:99px;cursor:pointer;background:var(--bg);color:var(--text2);-webkit-appearance:none;}
 .src-pill.on{background:var(--green-light);color:var(--green-dark);border-color:var(--green);}
-
-/* Buttons */
 .btn{width:100%;padding:14px;font-size:15px;font-weight:600;background:var(--green);color:#fff;border:none;border-radius:var(--radius);cursor:pointer;margin-top:4px;letter-spacing:0.01em;}
 .btn:disabled{opacity:.5;cursor:default;}
 .btn:active{transform:scale(0.98);}
-
-/* Status */
 .status{font-size:12px;text-align:center;margin-top:10px;min-height:18px;color:var(--text2);}
 .status.ok{color:var(--green-dark);}.status.err{color:var(--red-dark);}
-
-/* Metrics */
 .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
 .metric-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
 .metric{background:var(--bg);border-radius:var(--radius-lg);padding:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
 .metric-label{font-size:11px;color:var(--text2);margin-bottom:5px;font-weight:600;}
 .metric-value{font-size:20px;font-weight:700;color:var(--text);}
-
-/* Category bars */
 .section-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;}
 .cat-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .cat-bar-wrap{flex:1;height:5px;background:var(--bg3);border-radius:99px;overflow:hidden;}
 .cat-bar{height:100%;border-radius:99px;}
 .cat-name{font-size:12px;color:var(--text2);width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cat-amt{font-size:12px;font-weight:600;color:var(--text);width:75px;text-align:right;}
-
-/* Expense items */
 .item{display:flex;align-items:flex-start;justify-content:space-between;padding:12px 0;border-bottom:0.5px solid var(--border);gap:12px;}
 .item:last-child{border-bottom:none;}
 .item-desc{font-size:14px;color:var(--text);font-weight:600;}
@@ -95,27 +76,22 @@ textarea{resize:vertical;min-height:60px;}
 .filter-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;overflow-x:auto;padding-bottom:2px;}
 .chip{font-size:11px;padding:5px 12px;border-radius:99px;border:1px solid var(--border2);background:none;cursor:pointer;color:var(--text2);white-space:nowrap;font-weight:500;}
 .chip.on{background:var(--green-light);color:var(--green-dark);border-color:var(--green);}
-
-/* Receipt */
 .receipt-upload{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:18px;text-align:center;cursor:pointer;color:var(--text2);font-size:14px;position:relative;background:var(--bg2);}
 .receipt-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
 .receipt-preview{display:flex;align-items:center;gap:10px;margin-top:10px;}
 .receipt-img{width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border);}
-
-/* Bank */
 .tx-type-row{display:flex;gap:8px;margin-bottom:14px;}
 .tx-type-btn{flex:1;padding:12px;font-size:14px;font-weight:600;border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;background:var(--bg2);color:var(--text2);}
 .tx-type-btn.dep-on{background:var(--green-light);color:var(--green-dark);border-color:var(--green);}
 .tx-type-btn.wit-on{background:var(--red-light);color:var(--red-dark);border-color:var(--red);}
-
 .refresh-btn{font-size:12px;color:var(--text2);background:none;border:1px solid var(--border);border-radius:var(--radius);padding:5px 12px;cursor:pointer;font-weight:500;}
-.hint{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.5;}
-code{font-size:11px;background:var(--bg2);padding:2px 5px;border-radius:4px;}
+.loading{text-align:center;padding:2rem;color:var(--text3);font-size:13px;}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg);}}
 a{color:var(--green-dark);}
 </style>
 </head>
 <body>
-
 <div class="app">
   <div class="header">
     <div class="logo">
@@ -141,7 +117,8 @@ a{color:var(--green-dark);}
           <option>Office Supplies</option>
           <option>Employees / Freelancer</option>
           <option>Utilities</option>
-          <option>Legal & Compliance</option>
+          <option>Legal &amp; Compliance</option>
+          <option>Credit Card Payment</option>
         </select>
       </div>
       <div class="field">
@@ -155,9 +132,9 @@ a{color:var(--green-dark);}
         <input type="hidden" id="f-source" value="Bank"/>
       </div>
       <div class="field"><label>Description <span style="font-weight:400;color:var(--text3)">(optional)</span></label><input type="text" id="f-desc" placeholder="What was this expense for?"/></div>
-      <div class="field"><label>Notes / Receipt ref <span style="font-weight:400;color:var(--text3)">(optional)</span></label><textarea id="f-notes" placeholder="Invoice number, vendor, or any notes…"></textarea></div>
+      <div class="field"><label>Notes <span style="font-weight:400;color:var(--text3)">(optional)</span></label><textarea id="f-notes" placeholder="Invoice number, vendor, or any notes…"></textarea></div>
       <div class="field">
-        <label>Receipt photo / screenshot <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
+        <label>Receipt <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
         <div class="receipt-upload">
           <input type="file" id="f-receipt" accept="image/*,application/pdf" onchange="handleReceiptSelect(event)"/>
           <span id="receipt-label">📎 Tap to attach photo or PDF</span>
@@ -187,17 +164,17 @@ a{color:var(--green-dark);}
         <div class="field"><label>Date</label><input type="date" id="b-date"/></div>
         <div class="field"><label>Amount (₹)</label><input type="number" id="b-amount" placeholder="0" min="0" step="1" inputmode="numeric"/></div>
       </div>
-      <div class="field"><label>Description</label><input type="text" id="b-desc" placeholder="Reason or source"/></div>
-      <div class="field"><label>Notes</label><input type="text" id="b-notes" placeholder="Reference, account, etc."/></div>
+      <div class="field"><label>Description <span style="font-weight:400;color:var(--text3)">(optional)</span></label><input type="text" id="b-desc" placeholder="Reason or source"/></div>
+      <div class="field"><label>Notes <span style="font-weight:400;color:var(--text3)">(optional)</span></label><input type="text" id="b-notes" placeholder="Reference, account, etc."/></div>
       <button class="btn" id="bank-btn" onclick="saveBank()">Save transaction</button>
       <div class="status" id="bank-status"></div>
     </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <span class="section-title" style="margin-bottom:0">History</span>
-        <button class="refresh-btn" onclick="renderBankList()">↻ Refresh</button>
+        <button class="refresh-btn" onclick="loadBankFromSheet()">↻ Refresh</button>
       </div>
-      <div id="bank-list"><div class="empty">No transactions yet</div></div>
+      <div id="bank-list"><div class="loading"><span class="spin"></span>Loading…</div></div>
     </div>
   </div>
 
@@ -233,56 +210,14 @@ a{color:var(--green-dark);}
     </div>
     <div class="card">
       <div class="section-title">By category</div>
-      <div id="d-cats"><div class="empty">No data yet</div></div>
+      <div id="d-cats"><div class="loading"><span class="spin"></span>Loading…</div></div>
     </div>
     <div class="card">
       <div class="section-title">Recent expenses</div>
       <div class="filter-row" id="filter-row"></div>
-      <div id="d-list"><div class="empty">No entries yet</div></div>
+      <div id="d-list"><div class="loading"><span class="spin"></span>Loading…</div></div>
     </div>
-  </div>
-
-  <!-- SETTINGS -->
-  <div class="page" id="page-settings">
-    <div class="card">
-      <div class="section-title" style="margin-bottom:12px">Apps Script URL</div>
-      <div class="field">
-        <label>Web App URL</label>
-        <input type="text" id="s-scripturl" placeholder="https://script.google.com/macros/s/…/exec"/>
-        <div class="hint">Paste the URL after deploying the Apps Script (see steps below)</div>
-      </div>
-      <button class="btn" onclick="saveScriptUrl()">Save URL</button>
-      <div class="status" id="settings-status"></div>
-    </div>
-    <div class="card">
-      <div class="section-title" style="margin-bottom:12px">One-time setup (5 min)</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.9;">
-        <strong>Step 1 — Set up your Google Sheet</strong><br>
-        Open your Sheet → create two tabs named exactly:<br>
-        <code>Expenses</code> and <code>Bank</code><br><br>
-        Add header row in <strong>Expenses</strong>:<br>
-        <code>Date | Amount | Category | Source | Description | Notes | Receipt | Saved At</code><br><br>
-        Add header row in <strong>Bank</strong>:<br>
-        <code>Date | Type | Amount | Description | Notes | Saved At</code><br><br>
-        <strong>Step 2 — Create Apps Script</strong><br>
-        In your Sheet → <strong>Extensions → Apps Script</strong><br>
-        Delete any existing code, paste the contents of <code>appsscript.gs</code><br><br>
-        <strong>Step 3 — Deploy</strong><br>
-        Click <strong>Deploy → New deployment</strong><br>
-        Type: <strong>Web app</strong><br>
-        Execute as: <strong>Me</strong><br>
-        Who has access: <strong>Anyone</strong><br>
-        Click Deploy → copy the Web App URL<br><br>
-        <strong>Step 4</strong> — Paste the URL above and tap Save URL
-      </div>
-    </div>
-    <div class="card">
-      <div class="section-title" style="margin-bottom:8px">Add to home screen</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
-        <strong>iPhone/Safari:</strong> Share → "Add to Home Screen"<br>
-        <strong>Android/Chrome:</strong> 3-dot menu → "Add to Home Screen"
-      </div>
-    </div>
+    <div class="status" id="dash-status"></div>
   </div>
 </div>
 
@@ -300,17 +235,10 @@ a{color:var(--green-dark);}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="13" width="6" height="8" rx="1"/><rect x="9" y="9" width="6" height="12" rx="1"/><rect x="16" y="5" width="6" height="16" rx="1"/></svg>
     Dashboard
   </button>
-  <button class="tabbar-btn" onclick="showPage('settings',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    Settings
-  </button>
 </div>
 
 <script>
-const SHEET_ID='1OHWNOQ7tMzHCRdeSMlUaUd17nEFhW2X6UcRiPQF-wtY';
-const FOLDER_ID='1P5-CORCvPR5Av4e1URxFTsdK6rhIlIqT';
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwMfxxujJDNEwOqpBAbAD-5IJtNSVLte2gse1ZVzlw1MuzTwYQwejgTAsTE4h5VGpnw/exec';
-const EXP_KEY='cqi_exp_v5';const BANK_KEY='cqi_bank_v2';
 const CAT_C={
   'Travel':{bar:'#1D9E75',bg:'#E1F5EE',text:'#0F6E56'},
   'Software':{bar:'#378ADD',bg:'#E6F1FB',text:'#185FA5'},
@@ -318,7 +246,8 @@ const CAT_C={
   'Office Supplies':{bar:'#888780',bg:'#F1EFE8',text:'#444441'},
   'Employees / Freelancer':{bar:'#BA7517',bg:'#FAEEDA',text:'#633806'},
   'Utilities':{bar:'#0F6E56',bg:'#9FE1CB',text:'#04342C'},
-  'Legal & Compliance':{bar:'#533AB7',bg:'#EEEDFE',text:'#26215C'}
+  'Legal & Compliance':{bar:'#533AB7',bg:'#EEEDFE',text:'#26215C'},
+  'Credit Card Payment':{bar:'#E24B4A',bg:'#FCEBEB',text:'#A32D2D'}
 };
 const SRC_C={
   'Bank':{bg:'#E6F1FB',text:'#185FA5'},
@@ -326,69 +255,78 @@ const SRC_C={
   'Personal Account':{bg:'#FAEEDA',text:'#633806'},
   'Credit Card':{bg:'#FBEAF0',text:'#993556'}
 };
-let expenses=[],bank=[],activeFilter='All',txType='deposit',receiptFile=null,receiptB64=null;
-try{const s=localStorage.getItem(EXP_KEY);if(s)expenses=JSON.parse(s);}catch(e){}
-try{const s=localStorage.getItem(BANK_KEY);if(s)bank=JSON.parse(s);}catch(e){}
-function persist(){
-  try{localStorage.setItem(EXP_KEY,JSON.stringify(expenses));}catch(e){}
-  try{localStorage.setItem(BANK_KEY,JSON.stringify(bank));}catch(e){}
-}
+let activeFilter='All', txType='deposit', receiptFile=null, receiptB64=null;
+let cachedExpRows=[];
+
 function showPage(page,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tabbar-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   btn.classList.add('active');
-  if(page==='dashboard')loadDashboard();
-  if(page==='bank')renderBankList();
-  if(page==='settings'){
-    const u=localStorage.getItem('cqi_script_url')||'';
-    document.getElementById('s-scripturl').value=u;
-    document.getElementById('settings-status').textContent=u?'URL saved ✓':'';
-    document.getElementById('settings-status').className='status'+(u?' ok':'');
-  }
-}
-function saveScriptUrl(){
-  const u=document.getElementById('s-scripturl').value.trim();
-  if(!u){setStatus('settings-status','Please paste the Apps Script URL','err');return;}
-  localStorage.setItem('cqi_script_url',u);
-  setStatus('settings-status','Saved ✓','ok');
+  if(page==='dashboard') loadDashboard();
+  if(page==='bank') loadBankFromSheet();
 }
 function setSrc(el,val){
   document.querySelectorAll('.src-pill').forEach(p=>p.classList.remove('on'));
-  el.classList.add('on');document.getElementById('f-source').value=val;
+  el.classList.add('on');
+  document.getElementById('f-source').value=val;
 }
-function setStatus(id,msg,type){const el=document.getElementById(id);el.textContent=msg;el.className='status '+(type||'');}
-function fmt(n){return'₹'+Math.round(n).toLocaleString('en-IN');}
-function badge(cat){const c=CAT_C[cat]||{bg:'#F1EFE8',text:'#444441'};return`<span class="badge" style="background:${c.bg};color:${c.text}">${cat}</span>`;}
-function srcBadge(src){const c=SRC_C[src]||{bg:'#F1EFE8',text:'#444441'};return`<span class="badge" style="background:${c.bg};color:${c.text}">${src}</span>`;}
 function setTxType(t){
   txType=t;
   document.getElementById('btn-dep').className='tx-type-btn'+(t==='deposit'?' dep-on':'');
   document.getElementById('btn-wit').className='tx-type-btn'+(t==='withdrawal'?' wit-on':'');
 }
+function setStatus(id,msg,type){
+  const el=document.getElementById(id);
+  el.textContent=msg; el.className='status '+(type||'');
+}
+function fmt(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+function badge(cat){
+  const c=CAT_C[cat]||{bg:'#F1EFE8',text:'#444441'};
+  return`<span class="badge" style="background:${c.bg};color:${c.text}">${cat}</span>`;
+}
+function srcBadge(src){
+  const c=SRC_C[src]||{bg:'#F1EFE8',text:'#444441'};
+  return`<span class="badge" style="background:${c.bg};color:${c.text}">${src||'Bank'}</span>`;
+}
 function handleReceiptSelect(e){
-  const file=e.target.files[0];if(!file)return;
+  const file=e.target.files[0]; if(!file) return;
   receiptFile=file;
   const reader=new FileReader();
   reader.onload=ev=>{
     receiptB64=ev.target.result.split(',')[1];
     document.getElementById('receipt-label').textContent='📎 Receipt attached';
-    if(file.type.startsWith('image/'))document.getElementById('receipt-thumb').src=ev.target.result;
+    if(file.type.startsWith('image/')) document.getElementById('receipt-thumb').src=ev.target.result;
     document.getElementById('receipt-name').textContent=file.name;
     document.getElementById('receipt-preview').style.display='flex';
   };
   reader.readAsDataURL(file);
 }
 function clearReceipt(){
-  receiptFile=null;receiptB64=null;
+  receiptFile=null; receiptB64=null;
   document.getElementById('f-receipt').value='';
   document.getElementById('receipt-preview').style.display='none';
   document.getElementById('receipt-label').textContent='📎 Tap to attach photo or PDF';
   document.getElementById('receipt-thumb').src='';
 }
-async function syncToSheets(tab, row){
-  const res=await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({tab,row})});
+
+async function syncToSheets(tab,row){
+  await fetch(SCRIPT_URL,{
+    method:'POST',mode:'no-cors',
+    headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({tab,row})
+  });
 }
+
+async function fetchFromSheet(tab){
+  const url=`${SCRIPT_URL}?tab=${encodeURIComponent(tab)}&t=${Date.now()}`;
+  const res=await fetch(url);
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const json=await res.json();
+  if(!json.success) throw new Error(json.error||'Sheet error');
+  return json.data||[];
+}
+
 async function saveExpense(){
   const date=document.getElementById('f-date').value;
   const amount=document.getElementById('f-amount').value;
@@ -396,114 +334,177 @@ async function saveExpense(){
   const source=document.getElementById('f-source').value;
   const desc=document.getElementById('f-desc').value.trim();
   const notes=document.getElementById('f-notes').value.trim();
+  const receiptName=receiptFile?receiptFile.name:'';
   if(!date||!amount||!category){setStatus('save-status','Date, amount and category are required','err');return;}
-  const btn=document.getElementById('save-btn');btn.disabled=true;
-  setStatus('save-status','Saving…','');
-  const entry={date,amount:parseFloat(amount),category,source,desc,notes,receiptName:receiptFile?receiptFile.name:'',receiptLink:'',ts:new Date().toISOString()};
+  const btn=document.getElementById('save-btn'); btn.disabled=true;
+  setStatus('save-status','Saving to Sheets…','');
   try{
-    setStatus('save-status','Saving to Sheets…','');
-    await syncToSheets('Expenses',[date,Math.round(parseFloat(amount)),category,source,desc,notes,entry.receiptName,entry.ts]);
-    expenses.unshift(entry);persist();clearReceipt();
-    document.getElementById('f-amount').value='';document.getElementById('f-desc').value='';
-    document.getElementById('f-notes').value='';document.getElementById('f-category').value='';
+    const ts=new Date().toISOString();
+    await syncToSheets('Expenses',[date,Math.round(parseFloat(amount)),category,source,desc,notes,receiptName,ts]);
+    if(source==='Bank' || category==='Credit Card Payment'){
+      const bankDesc=desc?`Expense: ${desc} (${category})`:`Expense: ${category}`;
+      await syncToSheets('Bank',[date,'Withdrawal',Math.round(parseFloat(amount)),bankDesc,'Auto from expense',ts]);
+    }
+    clearReceipt();
+    document.getElementById('f-amount').value='';
+    document.getElementById('f-desc').value='';
+    document.getElementById('f-notes').value='';
+    document.getElementById('f-category').value='';
     document.querySelectorAll('.src-pill').forEach((p,i)=>p.classList.toggle('on',i===0));
     document.getElementById('f-source').value='Bank';
-    setStatus('save-status','Saved to Google Sheets ✓','ok');
+    setStatus('save-status',(source==='Bank'||category==='Credit Card Payment')?'Saved ✓ (bank balance updated)':'Saved to Google Sheets ✓','ok');
   }catch(err){
-    console.error(err);
-    expenses.unshift(entry);persist();
-    setStatus('save-status','Saved locally — Sheets: '+err.message.substring(0,60),'err');
+    setStatus('save-status','Error: '+err.message.substring(0,80),'err');
   }
   btn.disabled=false;
 }
+
 async function saveBank(){
   const date=document.getElementById('b-date').value;
   const amount=document.getElementById('b-amount').value;
   const desc=document.getElementById('b-desc').value.trim();
   const notes=document.getElementById('b-notes').value.trim();
   if(!date||!amount){setStatus('bank-status','Date and amount are required','err');return;}
-  const btn=document.getElementById('bank-btn');btn.disabled=true;
-  setStatus('bank-status','Saving…','');
-  const entry={date,type:txType,amount:parseFloat(amount),desc,notes,ts:new Date().toISOString()};
+  const btn=document.getElementById('bank-btn'); btn.disabled=true;
+  setStatus('bank-status','Saving to Sheets…','');
   try{
-    await syncToSheets('Bank',[date,txType==='deposit'?'Deposit':'Withdrawal',Math.round(parseFloat(amount)),desc,notes,entry.ts]);
-    bank.unshift(entry);persist();
-    document.getElementById('b-amount').value='';document.getElementById('b-desc').value='';document.getElementById('b-notes').value='';
+    await syncToSheets('Bank',[date,txType==='deposit'?'Deposit':'Withdrawal',Math.round(parseFloat(amount)),desc,notes,new Date().toISOString()]);
+    document.getElementById('b-amount').value='';
+    document.getElementById('b-desc').value='';
+    document.getElementById('b-notes').value='';
     setStatus('bank-status','Saved to Google Sheets ✓','ok');
-    renderBankList();
+    loadBankFromSheet();
   }catch(err){
-    console.error(err);
-    bank.unshift(entry);persist();
-    setStatus('bank-status','Saved locally — Sheets: '+err.message.substring(0,60),'err');
-    renderBankList();
+    setStatus('bank-status','Error: '+err.message.substring(0,80),'err');
   }
   btn.disabled=false;
 }
-function renderBankList(){
-  if(!bank.length){document.getElementById('bank-list').innerHTML='<div class="empty">No transactions yet</div>';return;}
-  let bal=0;
-  const wb=bank.slice().reverse().map(t=>{bal+=t.type==='deposit'?t.amount:-t.amount;return{...t,bal};}).reverse();
-  document.getElementById('bank-list').innerHTML=wb.map(t=>`
-    <div class="item">
-      <div>
-        <div class="item-desc">${t.desc}</div>
-        <div class="item-meta">
-          <span>${t.date}</span>
-          <span class="badge" style="background:${t.type==='deposit'?'#E1F5EE':'#FCEBEB'};color:${t.type==='deposit'?'#0F6E56':'#A32D2D'}">${t.type==='deposit'?'Deposit':'Withdrawal'}</span>
-          ${t.notes?'<span>'+t.notes+'</span>':''}
-          <span style="color:var(--text3)">bal: ${fmt(t.bal)}</span>
+
+async function loadBankFromSheet(){
+  document.getElementById('bank-list').innerHTML='<div class="loading"><span class="spin"></span>Loading from Sheet…</div>';
+  try{
+    const rows=await fetchFromSheet('Bank');
+    if(!rows.length){document.getElementById('bank-list').innerHTML='<div class="empty">No transactions yet</div>';return;}
+    const sorted=[...rows].sort((a,b)=>new Date(a['Date'])-new Date(b['Date']));
+    let bal=0;
+    const withBal=sorted.map(r=>{
+      const amt=parseFloat(r['Amount'])||0;
+      bal+=(r['Type']||'').toLowerCase()==='deposit'?amt:-amt;
+      return{...r,_bal:bal};
+    }).reverse();
+    document.getElementById('bank-list').innerHTML=withBal.map(t=>{
+      const isDep=(t['Type']||'').toLowerCase()==='deposit';
+      return`<div class="item">
+        <div>
+          <div class="item-desc">${t['Description']||t['Type']||'—'}</div>
+          <div class="item-meta">
+            <span>${t['Date']}</span>
+            <span class="badge" style="background:${isDep?'#E1F5EE':'#FCEBEB'};color:${isDep?'#0F6E56':'#A32D2D'}">${t['Type']}</span>
+            ${t['Notes']?'<span>'+t['Notes']+'</span>':''}
+            <span style="color:var(--text3)">bal: ${fmt(t._bal)}</span>
+          </div>
         </div>
-      </div>
-      <div class="item-right"><div class="item-amt ${t.type==='deposit'?'dep':'wit'}">${t.type==='deposit'?'+':'−'}${fmt(t.amount)}</div></div>
-    </div>`).join('');
-}
-function loadDashboard(){
-  const totalDep=bank.filter(t=>t.type==='deposit').reduce((s,t)=>s+t.amount,0);
-  const totalWit=bank.filter(t=>t.type==='withdrawal').reduce((s,t)=>s+t.amount,0);
-  const balance=totalDep-totalWit;
-  const balEl=document.getElementById('d-balance');
-  balEl.textContent=balance>=0?fmt(balance):'−'+fmt(Math.abs(balance));
-  balEl.style.color=balance>=0?'var(--green-dark)':'var(--red-dark)';
-  document.getElementById('d-deps').textContent=fmt(totalDep);
-  document.getElementById('d-wits').textContent=fmt(totalWit);
-  if(!expenses.length){
-    document.getElementById('d-total').textContent='₹0';document.getElementById('d-month').textContent='₹0';
-    document.getElementById('d-cats').innerHTML='<div class="empty">No expenses yet</div>';
-    document.getElementById('d-list').innerHTML='<div class="empty">No entries yet</div>';
-    document.getElementById('filter-row').innerHTML='';return;
+        <div class="item-right"><div class="item-amt ${isDep?'dep':'wit'}">${isDep?'+':'−'}${fmt(parseFloat(t['Amount'])||0)}</div></div>
+      </div>`;
+    }).join('');
+  }catch(err){
+    document.getElementById('bank-list').innerHTML=`<div class="empty">Could not load: ${err.message}</div>`;
   }
-  const total=expenses.reduce((s,e)=>s+e.amount,0);
-  const now=new Date();
-  const monthTotal=expenses.filter(e=>{const d=new Date(e.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).reduce((s,e)=>s+e.amount,0);
-  document.getElementById('d-total').textContent=fmt(total);
-  document.getElementById('d-month').textContent=fmt(monthTotal);
-  const cats={};expenses.forEach(e=>{cats[e.category]=(cats[e.category]||0)+e.amount;});
-  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
-  const maxAmt=sorted[0]?.[1]||1;
-  document.getElementById('d-cats').innerHTML=sorted.map(([cat,amt])=>{
-    const c=CAT_C[cat]||{bar:'#1D9E75'};
-    return`<div class="cat-row"><span class="cat-name">${cat}</span><div class="cat-bar-wrap"><div class="cat-bar" style="width:${Math.round(amt/maxAmt*100)}%;background:${c.bar}"></div></div><span class="cat-amt">${fmt(amt)}</span></div>`;
-  }).join('');
-  const allCats=['All',...new Set(expenses.map(e=>e.category))];
-  document.getElementById('filter-row').innerHTML=allCats.map(c=>`<button class="chip ${c===activeFilter?'on':''}" onclick="setFilter('${c}')">${c}</button>`).join('');
-  renderList();
 }
-function setFilter(cat){activeFilter=cat;document.querySelectorAll('.chip').forEach(el=>el.classList.toggle('on',el.textContent===cat));renderList();}
-function renderList(){
-  const filtered=activeFilter==='All'?expenses:expenses.filter(e=>e.category===activeFilter);
-  document.getElementById('d-list').innerHTML=filtered.length?filtered.slice(0,30).map(e=>`
+
+async function loadDashboard(){
+  setStatus('dash-status','','');
+  ['d-balance','d-total','d-month','d-deps','d-wits'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('d-cats').innerHTML='<div class="loading"><span class="spin"></span>Loading…</div>';
+  document.getElementById('d-list').innerHTML='<div class="loading"><span class="spin"></span>Loading…</div>';
+  document.getElementById('filter-row').innerHTML='';
+  try{
+    const [expRows,bankRows]=await Promise.all([
+      fetchFromSheet('Expenses').catch(()=>[]),
+      fetchFromSheet('Bank').catch(()=>[])
+    ]);
+    cachedExpRows=expRows;
+
+    // Bank metrics
+    let totalDep=0,totalWit=0;
+    bankRows.forEach(r=>{
+      const amt=parseFloat(r['Amount'])||0;
+      if((r['Type']||'').toLowerCase()==='deposit') totalDep+=amt;
+      else totalWit+=amt;
+    });
+    const balance=totalDep-totalWit;
+    const balEl=document.getElementById('d-balance');
+    balEl.textContent=balance>=0?fmt(balance):'−'+fmt(Math.abs(balance));
+    balEl.style.color=balance>=0?'var(--green-dark)':'var(--red-dark)';
+    document.getElementById('d-deps').textContent=fmt(totalDep);
+    document.getElementById('d-wits').textContent=fmt(totalWit);
+
+    if(!expRows.length){
+      document.getElementById('d-total').textContent='₹0';
+      document.getElementById('d-month').textContent='₹0';
+      document.getElementById('d-cats').innerHTML='<div class="empty">No expenses yet</div>';
+      document.getElementById('d-list').innerHTML='<div class="empty">No entries yet</div>';
+      return;
+    }
+
+    const now=new Date();
+    const total=expRows.reduce((s,r)=>s+(parseFloat(r['Amount'])||0),0);
+    const monthTotal=expRows.filter(r=>{
+      const d=new Date(r['Date']);
+      return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+    }).reduce((s,r)=>s+(parseFloat(r['Amount'])||0),0);
+    document.getElementById('d-total').textContent=fmt(total);
+    document.getElementById('d-month').textContent=fmt(monthTotal);
+
+    // Category bars
+    const cats={};
+    expRows.forEach(r=>{const c=r['Category']||'Other';cats[c]=(cats[c]||0)+(parseFloat(r['Amount'])||0);});
+    const sortedCats=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+    const maxAmt=sortedCats[0]?.[1]||1;
+    document.getElementById('d-cats').innerHTML=sortedCats.map(([cat,amt])=>{
+      const c=CAT_C[cat]||{bar:'#1D9E75'};
+      return`<div class="cat-row"><span class="cat-name">${cat}</span><div class="cat-bar-wrap"><div class="cat-bar" style="width:${Math.round(amt/maxAmt*100)}%;background:${c.bar}"></div></div><span class="cat-amt">${fmt(amt)}</span></div>`;
+    }).join('');
+
+    // Sorted newest first
+    const sortedExp=[...expRows].sort((a,b)=>new Date(b['Date'])-new Date(a['Date']));
+    cachedExpRows=sortedExp;
+    const allCats=['All',...new Set(sortedExp.map(r=>r['Category']).filter(Boolean))];
+    activeFilter='All';
+    document.getElementById('filter-row').innerHTML=allCats.map(c=>`<button class="chip ${c===activeFilter?'on':''}" onclick="setFilter('${c}')">${c}</button>`).join('');
+    renderExpList();
+
+  }catch(err){
+    setStatus('dash-status','Could not load: '+err.message,'err');
+    document.getElementById('d-cats').innerHTML='<div class="empty">Load failed — tap Refresh</div>';
+    document.getElementById('d-list').innerHTML='';
+  }
+}
+
+function setFilter(cat){
+  activeFilter=cat;
+  document.querySelectorAll('.chip').forEach(el=>el.classList.toggle('on',el.textContent===cat));
+  renderExpList();
+}
+
+function renderExpList(){
+  const filtered=activeFilter==='All'?cachedExpRows:cachedExpRows.filter(r=>r['Category']===activeFilter);
+  document.getElementById('d-list').innerHTML=filtered.length?filtered.slice(0,30).map(r=>`
     <div class="item">
       <div style="min-width:0">
-        <div class="item-desc">${e.desc}</div>
+        <div class="item-desc">${r['Description']||'—'}</div>
         <div class="item-meta">
-          <span>${e.date}</span>${badge(e.category)}${srcBadge(e.source||'Bank')}
-          ${e.receiptLink?'<a href="'+e.receiptLink+'" target="_blank">Receipt ↗</a>':e.receiptName?'<span>📎 '+e.receiptName+'</span>':''}
-          ${e.notes?'<span style="font-style:italic">'+e.notes+'</span>':''}
+          <span>${r['Date']}</span>
+          ${badge(r['Category']||'')}
+          ${srcBadge(r['Source']||'Bank')}
+          ${r['Receipt']?'<span>📎 '+r['Receipt']+'</span>':''}
+          ${r['Notes']?'<span style="font-style:italic">'+r['Notes']+'</span>':''}
         </div>
       </div>
-      <div class="item-right"><div class="item-amt" style="color:var(--text)">${fmt(e.amount)}</div></div>
+      <div class="item-right"><div class="item-amt" style="color:var(--text)">${fmt(parseFloat(r['Amount'])||0)}</div></div>
     </div>`).join(''):'<div class="empty">No entries for this category</div>';
 }
+
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 document.getElementById('b-date').value=new Date().toISOString().split('T')[0];
 </script>
