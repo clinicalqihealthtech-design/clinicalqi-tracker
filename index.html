@@ -309,7 +309,7 @@ a{color:var(--green-dark);}
 <script>
 const SHEET_ID='1OHWNOQ7tMzHCRdeSMlUaUd17nEFhW2X6UcRiPQF-wtY';
 const FOLDER_ID='1P5-CORCvPR5Av4e1URxFTsdK6rhIlIqT';
-const DRIVE_MCP='https://drivemcp.googleapis.com/mcp/v1';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwMfxxujJDNEwOqpBAbAD-5IJtNSVLte2gse1ZVzlw1MuzTwYQwejgTAsTE4h5VGpnw/exec';
 const EXP_KEY='cqi_exp_v5';const BANK_KEY='cqi_bank_v2';
 const CAT_C={
   'Travel':{bar:'#1D9E75',bg:'#E1F5EE',text:'#0F6E56'},
@@ -387,10 +387,7 @@ function clearReceipt(){
   document.getElementById('receipt-thumb').src='';
 }
 async function syncToSheets(tab, row){
-  const scriptUrl=localStorage.getItem('cqi_script_url');
-  if(!scriptUrl)throw new Error('No Apps Script URL set — go to Settings');
-  const res=await fetch(scriptUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({tab,row})});
-  // no-cors means we can't read response — assume success if no network error thrown
+  const res=await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({tab,row})});
 }
 async function saveExpense(){
   const date=document.getElementById('f-date').value;
