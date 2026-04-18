@@ -363,9 +363,13 @@ async function syncToSheets(tab,row){
 
 async function fetchFromSheet(tab){
   const url=`${SCRIPT_URL}?tab=${encodeURIComponent(tab)}&t=${Date.now()}`;
-  const res=await fetch(url);
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  const json=await res.json();
+  let res;
+  try{ res=await fetch(url); }
+  catch(e){ throw new Error('Network error — check internet connection'); }
+  if(!res.ok) throw new Error('Script returned HTTP '+res.status);
+  let json;
+  try{ json=await res.json(); }
+  catch(e){ throw new Error('Bad response from Apps Script — redeploy may be needed'); }
   if(!json.success) throw new Error(json.error||'Sheet error');
   return json.data||[];
 }
