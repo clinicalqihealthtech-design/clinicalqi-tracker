@@ -292,15 +292,42 @@ function srcBadge(src){
 function handleReceiptSelect(e){
   const file=e.target.files[0]; if(!file) return;
   receiptFile=file;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    receiptB64=ev.target.result.split(',')[1];
-    document.getElementById('receipt-label').textContent='📎 Receipt attached';
-    if(file.type.startsWith('image/')) document.getElementById('receipt-thumb').src=ev.target.result;
-    document.getElementById('receipt-name').textContent=file.name;
-    document.getElementById('receipt-preview').style.display='flex';
-  };
-  reader.readAsDataURL(file);
+  if(file.type.startsWith('image/')){
+    compressImage(file, 1000, 0.75).then(({b64,dataUrl})=>{
+      receiptB64=b64;
+      document.getElementById('receipt-thumb').src=dataUrl;
+      document.getElementById('receipt-preview').style.display='flex';
+    });
+  } else {
+    const reader=new FileReader();
+    reader.onload=ev=>{ receiptB64=ev.target.result.split(',')[1]; };
+    reader.readAsDataURL(file);
+  }
+  document.getElementById('receipt-label').textContent='📎 Receipt attached';
+  document.getElementById('receipt-name').textContent=file.name;
+  document.getElementById('receipt-preview').style.display='flex';
+}
+function compressImage(file, maxPx, quality){
+  return new Promise(resolve=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        let w=img.width, h=img.height;
+        if(w>maxPx||h>maxPx){
+          if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}
+          else{w=Math.round(w*maxPx/h);h=maxPx;}
+        }
+        const canvas=document.createElement('canvas');
+        canvas.width=w; canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        const dataUrl=canvas.toDataURL('image/jpeg',quality);
+        resolve({b64:dataUrl.split(',')[1], dataUrl});
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 function clearReceipt(){
   receiptFile=null; receiptB64=null;
@@ -309,12 +336,28 @@ function clearReceipt(){
   document.getElementById('receipt-label').textContent='📎 Tap to attach photo or PDF';
   document.getElementById('receipt-thumb').src='';
 }
+async function uploadReceipt(date, category, desc){
+  if(!receiptFile||!receiptB64) return '';
+  const ext=receiptFile.type==='application/pdf'?'pdf':'jpg';
+  const safeCat=category.replace(/[^a-zA-Z0-9]/g,'_');
+  const safeDesc=desc?('_'+desc.replace(/[^a-zA-Z0-9]/g,'_').substring(0,30)):'';
+  const fileName=`${date}_${safeCat}${safeDesc}.${ext}`;
+  const mimeType=receiptFile.type==='application/pdf'?'application/pdf':'image/jpeg';
+  const res=await fetch(SCRIPT_URL,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({action:'uploadFile',fileName,mimeType,base64:receiptB64})
+  });
+  if(!res.ok) return '';
+  const json=await res.json();
+  return json.fileUrl||'';
+}
 
 async function syncToSheets(tab,row){
   await fetch(SCRIPT_URL,{
-    method:'POST',mode:'no-cors',
+    method:'POST', mode:'no-cors',
     headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({tab,row})
+    body:JSON.stringify({action:'appendRow',tab,row})
   });
 }
 
@@ -337,10 +380,15 @@ async function saveExpense(){
   const receiptName=receiptFile?receiptFile.name:'';
   if(!date||!amount||!category){setStatus('save-status','Date, amount and category are required','err');return;}
   const btn=document.getElementById('save-btn'); btn.disabled=true;
-  setStatus('save-status','Saving to Sheets…','');
   try{
+    let receiptLink='';
+    if(receiptFile&&receiptB64){
+      setStatus('save-status','Uploading receipt…','');
+      receiptLink=await uploadReceipt(date,category,desc);
+    }
+    setStatus('save-status','Saving to Sheets…','');
     const ts=new Date().toISOString();
-    await syncToSheets('Expenses',[date,Math.round(parseFloat(amount)),category,source,desc,notes,receiptName,ts]);
+    await syncToSheets('Expenses',[date,Math.round(parseFloat(amount)),category,source,desc,notes,receiptLink||receiptName,ts]);
     if(source==='Bank' || category==='Credit Card Payment'){
       const bankDesc=desc?`Expense: ${desc} (${category})`:`Expense: ${category}`;
       await syncToSheets('Bank',[date,'Withdrawal',Math.round(parseFloat(amount)),bankDesc,'Auto from expense',ts]);
@@ -352,7 +400,7 @@ async function saveExpense(){
     document.getElementById('f-category').value='';
     document.querySelectorAll('.src-pill').forEach((p,i)=>p.classList.toggle('on',i===0));
     document.getElementById('f-source').value='Bank';
-    setStatus('save-status',(source==='Bank'||category==='Credit Card Payment')?'Saved ✓ (bank balance updated)':'Saved to Google Sheets ✓','ok');
+    setStatus('save-status',(source==='Bank'||category==='Credit Card Payment')?'Saved ✓ (bank balance updated)':'Saved ✓','ok');
   }catch(err){
     setStatus('save-status','Error: '+err.message.substring(0,80),'err');
   }
