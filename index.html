@@ -256,14 +256,14 @@ const SRC_C={
   'Credit Card':{bg:'#FBEAF0',text:'#993556'}
 };
 let activeFilter='All', txType='deposit', receiptFile=null, receiptB64=null;
-let cachedExpRows=[];
+let cachedExpRows=[], cachedBankRows=[];
 
 function showPage(page,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tabbar-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   btn.classList.add('active');
-  if(page==='dashboard') loadDashboard();
+  if(page==='dashboard'){ cachedExpRows=[]; cachedBankRows=[]; loadDashboard(); }
   if(page==='bank') loadBankFromSheet();
 }
 function setSrc(el,val){
