@@ -18,6 +18,7 @@
   --purple:#7F77DD;--purple-light:#EEEDFE;--purple-dark:#3C3489;
   --gray:#888780;--gray-light:#F1EFE8;--gray-dark:#444441;
   --pink:#D4537E;--pink-light:#FBEAF0;--pink-dark:#993556;
+  --navy:#1B3F8B;--navy-light:#E6EEFF;--navy-dark:#0D2055;
   --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0efec;
   --text:#1a1a18;--text2:#6b6b67;--text3:#a0a09b;
   --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
@@ -73,9 +74,11 @@ textarea{resize:vertical;min-height:60px;}
 .dep{color:var(--green-dark);}.wit{color:var(--red-dark);}
 .badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;}
 .empty{text-align:center;padding:2rem 1rem;color:var(--text3);font-size:13px;}
-.filter-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;overflow-x:auto;padding-bottom:2px;}
+.filter-row{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;overflow-x:auto;padding-bottom:2px;}
+.filter-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;align-self:center;white-space:nowrap;margin-right:2px;}
 .chip{font-size:11px;padding:5px 12px;border-radius:99px;border:1px solid var(--border2);background:none;cursor:pointer;color:var(--text2);white-space:nowrap;font-weight:500;}
 .chip.on{background:var(--green-light);color:var(--green-dark);border-color:var(--green);}
+.chip.grant-on{background:var(--navy-light);color:var(--navy-dark);border-color:var(--navy);}
 .receipt-upload{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:18px;text-align:center;cursor:pointer;color:var(--text2);font-size:14px;position:relative;background:var(--bg2);}
 .receipt-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
 .receipt-preview{display:flex;align-items:center;gap:10px;margin-top:10px;}
@@ -107,20 +110,32 @@ a{color:var(--green-dark);}
         <div class="field"><label>Date</label><input type="date" id="f-date"/></div>
         <div class="field"><label>Amount (₹)</label><input type="number" id="f-amount" placeholder="0" min="0" step="1" inputmode="numeric"/></div>
       </div>
-      <div class="field">
-        <label>Category</label>
-        <select id="f-category">
-          <option value="">Select…</option>
-          <option>Travel</option>
-          <option>Software</option>
-          <option>Marketing</option>
-          <option>Office Supplies</option>
-          <option>Employees / Freelancer</option>
-          <option>Utilities</option>
-          <option>Legal &amp; Compliance</option>
-          <option>Credit Card Payment</option>
-        </select>
+
+      <!-- Updated Category dropdown — grant-aligned -->
+      <div class="row2">
+        <div class="field">
+          <label>Category</label>
+          <select id="f-category">
+            <option value="">Select…</option>
+            <option>Manpower / Personnel</option>
+            <option>Equipment &amp; Software</option>
+            <option>Travel</option>
+            <option>Conferences &amp; Events</option>
+            <option>Consumables &amp; Printing</option>
+            <option>Legal &amp; Compliance</option>
+            <option>Utilities</option>
+            <option>Pre-Grant (not claimable)</option>
+            <option>Company (no grant)</option>
+            <option>Credit Card Payment</option>
+          </select>
+        </div>
+        <!-- New: Grant / Fund field -->
+        <div class="field">
+          <label>Grant / Fund <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
+          <input type="text" id="f-grant" placeholder="e.g. BIRAC BIG, ICMR…"/>
+        </div>
       </div>
+
       <div class="field">
         <label>Payment source</label>
         <div class="src-pills">
@@ -152,7 +167,7 @@ a{color:var(--green-dark);}
     </div>
   </div>
 
-  <!-- BANK -->
+  <!-- BANK — unchanged -->
   <div class="page" id="page-bank">
     <div class="card">
       <div class="section-title">Log transaction</div>
@@ -213,15 +228,20 @@ a{color:var(--green-dark);}
       <div id="d-cats"><div class="loading"><span class="spin"></span>Loading…</div></div>
     </div>
     <div class="card">
+      <div class="section-title">By grant / fund</div>
+      <div id="d-grants"><div class="loading"><span class="spin"></span>Loading…</div></div>
+    </div>
+    <div class="card">
       <div class="section-title">Recent expenses</div>
-      <div class="filter-row" id="filter-row"></div>
+      <div class="filter-row" id="filter-row-cat"></div>
+      <div class="filter-row" id="filter-row-grant" style="margin-bottom:12px;"></div>
       <div id="d-list"><div class="loading"><span class="spin"></span>Loading…</div></div>
     </div>
     <div class="status" id="dash-status"></div>
   </div>
 </div>
 
-<!-- Bottom Tab Bar -->
+<!-- Bottom Tab Bar — unchanged -->
 <div class="tabbar">
   <button class="tabbar-btn active" onclick="showPage('add',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
@@ -239,23 +259,46 @@ a{color:var(--green-dark);}
 
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwMfxxujJDNEwOqpBAbAD-5IJtNSVLte2gse1ZVzlw1MuzTwYQwejgTAsTE4h5VGpnw/exec';
+
+// Updated category colours to match new names
 const CAT_C={
-  'Travel':{bar:'#1D9E75',bg:'#E1F5EE',text:'#0F6E56'},
-  'Software':{bar:'#378ADD',bg:'#E6F1FB',text:'#185FA5'},
-  'Marketing':{bar:'#D4537E',bg:'#FBEAF0',text:'#993556'},
-  'Office Supplies':{bar:'#888780',bg:'#F1EFE8',text:'#444441'},
-  'Employees / Freelancer':{bar:'#BA7517',bg:'#FAEEDA',text:'#633806'},
-  'Utilities':{bar:'#0F6E56',bg:'#9FE1CB',text:'#04342C'},
-  'Legal & Compliance':{bar:'#533AB7',bg:'#EEEDFE',text:'#26215C'},
-  'Credit Card Payment':{bar:'#E24B4A',bg:'#FCEBEB',text:'#A32D2D'}
+  'Manpower / Personnel':      {bar:'#BA7517',bg:'#FAEEDA',text:'#633806'},
+  'Equipment & Software':      {bar:'#378ADD',bg:'#E6F1FB',text:'#185FA5'},
+  'Travel':                    {bar:'#1D9E75',bg:'#E1F5EE',text:'#0F6E56'},
+  'Conferences & Events':      {bar:'#D4537E',bg:'#FBEAF0',text:'#993556'},
+  'Consumables & Printing':    {bar:'#888780',bg:'#F1EFE8',text:'#444441'},
+  'Legal & Compliance':        {bar:'#533AB7',bg:'#EEEDFE',text:'#26215C'},
+  'Utilities':                 {bar:'#0F6E56',bg:'#9FE1CB',text:'#04342C'},
+  'Pre-Grant (not claimable)': {bar:'#E24B4A',bg:'#FCEBEB',text:'#A32D2D'},
+  'Company (no grant)':        {bar:'#888780',bg:'#F1EFE8',text:'#444441'},
+  'Credit Card Payment':       {bar:'#E24B4A',bg:'#FCEBEB',text:'#A32D2D'}
 };
+
 const SRC_C={
-  'Bank':{bg:'#E6F1FB',text:'#185FA5'},
-  'Cash':{bg:'#EAF3DE',text:'#27500A'},
+  'Bank':            {bg:'#E6F1FB',text:'#185FA5'},
+  'Cash':            {bg:'#EAF3DE',text:'#27500A'},
   'Personal Account':{bg:'#FAEEDA',text:'#633806'},
-  'Credit Card':{bg:'#FBEAF0',text:'#993556'}
+  'Credit Card':     {bg:'#FBEAF0',text:'#993556'}
 };
-let activeFilter='All', txType='deposit', receiptFile=null, receiptB64=null;
+
+// Rotating colour palette for free-text grant names
+const GRANT_PAL=[
+  {bar:'#1B3F8B',bg:'#E6EEFF',text:'#0D2055'},
+  {bar:'#1D9E75',bg:'#E1F5EE',text:'#0F6E56'},
+  {bar:'#7F77DD',bg:'#EEEDFE',text:'#3C3489'},
+  {bar:'#BA7517',bg:'#FAEEDA',text:'#633806'},
+  {bar:'#D4537E',bg:'#FBEAF0',text:'#993556'}
+];
+const grantColorMap={};
+let grantColorIdx=0;
+function grantColor(name){
+  if(!name) return {bar:'#a0a09b',bg:'#F1EFE8',text:'#444441'};
+  if(!grantColorMap[name]){grantColorMap[name]=GRANT_PAL[grantColorIdx%GRANT_PAL.length];grantColorIdx++;}
+  return grantColorMap[name];
+}
+
+let activeFilter='All', activeGrantFilter='All';
+let txType='deposit', receiptFile=null, receiptB64=null;
 let cachedExpRows=[], cachedBankRows=[];
 
 function showPage(page,btn){
@@ -289,11 +332,17 @@ function srcBadge(src){
   const c=SRC_C[src]||{bg:'#F1EFE8',text:'#444441'};
   return`<span class="badge" style="background:${c.bg};color:${c.text}">${src||'Bank'}</span>`;
 }
+function grantBadge(grant){
+  if(!grant) return '';
+  const c=grantColor(grant);
+  return`<span class="badge" style="background:${c.bg};color:${c.text}">🏦 ${grant}</span>`;
+}
+
 function handleReceiptSelect(e){
   const file=e.target.files[0]; if(!file) return;
   receiptFile=file;
   if(file.type.startsWith('image/')){
-    compressImage(file, 1000, 0.75).then(({b64,dataUrl})=>{
+    compressImage(file,1000,0.75).then(({b64,dataUrl})=>{
       receiptB64=b64;
       document.getElementById('receipt-thumb').src=dataUrl;
       document.getElementById('receipt-preview').style.display='flex';
@@ -307,7 +356,7 @@ function handleReceiptSelect(e){
   document.getElementById('receipt-name').textContent=file.name;
   document.getElementById('receipt-preview').style.display='flex';
 }
-function compressImage(file, maxPx, quality){
+function compressImage(file,maxPx,quality){
   return new Promise(resolve=>{
     const reader=new FileReader();
     reader.onload=ev=>{
@@ -322,7 +371,7 @@ function compressImage(file, maxPx, quality){
         canvas.width=w; canvas.height=h;
         canvas.getContext('2d').drawImage(img,0,0,w,h);
         const dataUrl=canvas.toDataURL('image/jpeg',quality);
-        resolve({b64:dataUrl.split(',')[1], dataUrl});
+        resolve({b64:dataUrl.split(',')[1],dataUrl});
       };
       img.src=ev.target.result;
     };
@@ -336,7 +385,7 @@ function clearReceipt(){
   document.getElementById('receipt-label').textContent='📎 Tap to attach photo or PDF';
   document.getElementById('receipt-thumb').src='';
 }
-async function uploadReceipt(date, category, desc){
+async function uploadReceipt(date,category,desc){
   if(!receiptFile||!receiptB64) return '';
   const ext=receiptFile.type==='application/pdf'?'pdf':'jpg';
   const safeCat=category.replace(/[^a-zA-Z0-9]/g,'_');
@@ -352,15 +401,13 @@ async function uploadReceipt(date, category, desc){
   const json=await res.json();
   return json.fileUrl||'';
 }
-
 async function syncToSheets(tab,row){
   await fetch(SCRIPT_URL,{
-    method:'POST', mode:'no-cors',
+    method:'POST',mode:'no-cors',
     headers:{'Content-Type':'text/plain'},
     body:JSON.stringify({action:'appendRow',tab,row})
   });
 }
-
 async function fetchFromSheet(tab){
   const url=`${SCRIPT_URL}?tab=${encodeURIComponent(tab)}&t=${Date.now()}`;
   let res;
@@ -382,6 +429,7 @@ async function saveExpense(){
   const desc=document.getElementById('f-desc').value.trim();
   const notes=document.getElementById('f-notes').value.trim();
   const receiptName=receiptFile?receiptFile.name:'';
+  const grantFund=document.getElementById('f-grant').value.trim();
   if(!date||!amount||!category){setStatus('save-status','Date, amount and category are required','err');return;}
   const btn=document.getElementById('save-btn'); btn.disabled=true;
   try{
@@ -392,8 +440,9 @@ async function saveExpense(){
     }
     setStatus('save-status','Saving to Sheets…','');
     const ts=new Date().toISOString();
-    await syncToSheets('Expenses',[date,Math.round(parseFloat(amount)),category,source,desc,notes,receiptLink||receiptName,ts]);
-    if(source==='Bank' || category==='Credit Card Payment'){
+    // Row order: Date, Amount, Category, Grant/Fund, Source, Description, Notes, Receipt, Saved At
+    await syncToSheets('Expenses',[date,Math.round(parseFloat(amount)),category,grantFund,source,desc,notes,receiptLink||receiptName,ts]);
+    if(source==='Bank'||category==='Credit Card Payment'){
       const bankDesc=desc?`Expense: ${desc} (${category})`:`Expense: ${category}`;
       await syncToSheets('Bank',[date,'Withdrawal',Math.round(parseFloat(amount)),bankDesc,'Auto from expense',ts]);
     }
@@ -402,6 +451,7 @@ async function saveExpense(){
     document.getElementById('f-desc').value='';
     document.getElementById('f-notes').value='';
     document.getElementById('f-category').value='';
+    document.getElementById('f-grant').value='';
     document.querySelectorAll('.src-pill').forEach((p,i)=>p.classList.toggle('on',i===0));
     document.getElementById('f-source').value='Bank';
     setStatus('save-status',(source==='Bank'||category==='Credit Card Payment')?'Saved ✓ (bank balance updated)':'Saved ✓','ok');
@@ -468,8 +518,10 @@ async function loadDashboard(){
   setStatus('dash-status','','');
   ['d-balance','d-total','d-month','d-deps','d-wits'].forEach(id=>document.getElementById(id).textContent='—');
   document.getElementById('d-cats').innerHTML='<div class="loading"><span class="spin"></span>Loading…</div>';
+  document.getElementById('d-grants').innerHTML='<div class="loading"><span class="spin"></span>Loading…</div>';
   document.getElementById('d-list').innerHTML='<div class="loading"><span class="spin"></span>Loading…</div>';
-  document.getElementById('filter-row').innerHTML='';
+  document.getElementById('filter-row-cat').innerHTML='';
+  document.getElementById('filter-row-grant').innerHTML='';
   try{
     const [expRows,bankRows]=await Promise.all([
       fetchFromSheet('Expenses').catch(()=>[]),
@@ -495,6 +547,7 @@ async function loadDashboard(){
       document.getElementById('d-total').textContent='₹0';
       document.getElementById('d-month').textContent='₹0';
       document.getElementById('d-cats').innerHTML='<div class="empty">No expenses yet</div>';
+      document.getElementById('d-grants').innerHTML='<div class="empty">No expenses yet</div>';
       document.getElementById('d-list').innerHTML='<div class="empty">No entries yet</div>';
       return;
     }
@@ -508,39 +561,73 @@ async function loadDashboard(){
     document.getElementById('d-total').textContent=fmt(total);
     document.getElementById('d-month').textContent=fmt(monthTotal);
 
-    // Category bars
+    // By category
     const cats={};
     expRows.forEach(r=>{const c=r['Category']||'Other';cats[c]=(cats[c]||0)+(parseFloat(r['Amount'])||0);});
     const sortedCats=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
-    const maxAmt=sortedCats[0]?.[1]||1;
+    const maxCat=sortedCats[0]?.[1]||1;
     document.getElementById('d-cats').innerHTML=sortedCats.map(([cat,amt])=>{
       const c=CAT_C[cat]||{bar:'#1D9E75'};
-      return`<div class="cat-row"><span class="cat-name">${cat}</span><div class="cat-bar-wrap"><div class="cat-bar" style="width:${Math.round(amt/maxAmt*100)}%;background:${c.bar}"></div></div><span class="cat-amt">${fmt(amt)}</span></div>`;
+      return`<div class="cat-row"><span class="cat-name">${cat}</span><div class="cat-bar-wrap"><div class="cat-bar" style="width:${Math.round(amt/maxCat*100)}%;background:${c.bar}"></div></div><span class="cat-amt">${fmt(amt)}</span></div>`;
     }).join('');
 
-    // Sorted newest first
+    // By Grant
+    const grants={};
+    expRows.forEach(r=>{
+      const g=(r['Grant / Fund']||'').trim();
+      const key=g||'(unassigned)';
+      grants[key]=(grants[key]||0)+(parseFloat(r['Amount'])||0);
+    });
+    const sortedGrants=Object.entries(grants).sort((a,b)=>b[1]-a[1]);
+    const maxGrant=sortedGrants[0]?.[1]||1;
+    document.getElementById('d-grants').innerHTML=sortedGrants.length?sortedGrants.map(([g,amt])=>{
+      const c=g==='(unassigned)'?{bar:'#a0a09b'}:grantColor(g);
+      return`<div class="cat-row"><span class="cat-name">${g}</span><div class="cat-bar-wrap"><div class="cat-bar" style="width:${Math.round(amt/maxGrant*100)}%;background:${c.bar}"></div></div><span class="cat-amt">${fmt(amt)}</span></div>`;
+    }).join(''):'<div class="empty">No grant data yet</div>';
+
+    // Sort newest first
     const sortedExp=[...expRows].sort((a,b)=>new Date(b['Date'])-new Date(a['Date']));
     cachedExpRows=sortedExp;
+
+    // Category filter chips
     const allCats=['All',...new Set(sortedExp.map(r=>r['Category']).filter(Boolean))];
     activeFilter='All';
-    document.getElementById('filter-row').innerHTML=allCats.map(c=>`<button class="chip ${c===activeFilter?'on':''}" onclick="setFilter('${c}')">${c}</button>`).join('');
-    renderExpList();
+    document.getElementById('filter-row-cat').innerHTML=
+      '<span class="filter-label">Category:</span>'+
+      allCats.map(c=>`<button class="chip ${c===activeFilter?'on':''}" onclick="setFilter('${c.replace(/'/g,"\\'")}')">  ${c}</button>`).join('');
 
+    // Grant filter chips — only shown if grant data exists
+    const allGrants=['All',...new Set(sortedExp.map(r=>(r['Grant / Fund']||'').trim()).filter(Boolean))];
+    activeGrantFilter='All';
+    if(allGrants.length>1){
+      document.getElementById('filter-row-grant').innerHTML=
+        '<span class="filter-label">Grant:</span>'+
+        allGrants.map(g=>`<button class="chip ${g===activeGrantFilter?'grant-on':''}" onclick="setGrantFilter('${g.replace(/'/g,"\\'")}')">🏦 ${g}</button>`).join('');
+    }
+
+    renderExpList();
   }catch(err){
     setStatus('dash-status','Could not load: '+err.message,'err');
     document.getElementById('d-cats').innerHTML='<div class="empty">Load failed — tap Refresh</div>';
+    document.getElementById('d-grants').innerHTML='';
     document.getElementById('d-list').innerHTML='';
   }
 }
 
 function setFilter(cat){
   activeFilter=cat;
-  document.querySelectorAll('.chip').forEach(el=>el.classList.toggle('on',el.textContent===cat));
+  document.querySelectorAll('#filter-row-cat .chip').forEach(el=>el.classList.toggle('on',el.textContent.trim()===cat));
   renderExpList();
 }
-
+function setGrantFilter(g){
+  activeGrantFilter=g;
+  document.querySelectorAll('#filter-row-grant .chip').forEach(el=>el.classList.toggle('grant-on',el.textContent.replace('🏦 ','').trim()===g));
+  renderExpList();
+}
 function renderExpList(){
-  const filtered=activeFilter==='All'?cachedExpRows:cachedExpRows.filter(r=>r['Category']===activeFilter);
+  let filtered=cachedExpRows;
+  if(activeFilter!=='All') filtered=filtered.filter(r=>r['Category']===activeFilter);
+  if(activeGrantFilter!=='All') filtered=filtered.filter(r=>(r['Grant / Fund']||'').trim()===activeGrantFilter);
   document.getElementById('d-list').innerHTML=filtered.length?filtered.slice(0,30).map(r=>`
     <div class="item">
       <div style="min-width:0">
@@ -548,13 +635,14 @@ function renderExpList(){
         <div class="item-meta">
           <span>${r['Date']}</span>
           ${badge(r['Category']||'')}
+          ${grantBadge((r['Grant / Fund']||'').trim())}
           ${srcBadge(r['Source']||'Bank')}
           ${r['Receipt']?'<span>📎 '+r['Receipt']+'</span>':''}
           ${r['Notes']?'<span style="font-style:italic">'+r['Notes']+'</span>':''}
         </div>
       </div>
       <div class="item-right"><div class="item-amt" style="color:var(--text)">${fmt(parseFloat(r['Amount'])||0)}</div></div>
-    </div>`).join(''):'<div class="empty">No entries for this category</div>';
+    </div>`).join(''):'<div class="empty">No entries match this filter</div>';
 }
 
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
