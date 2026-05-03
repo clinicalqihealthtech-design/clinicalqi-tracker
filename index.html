@@ -82,6 +82,8 @@ textarea{resize:vertical;min-height:60px;}
 .chip{font-size:11px;padding:5px 12px;border-radius:99px;border:1px solid var(--border2);background:none;cursor:pointer;color:var(--text2);white-space:nowrap;font-weight:500;}
 .chip.on{background:var(--green-light);color:var(--green-dark);border-color:var(--green);}
 .chip.grant-on{background:var(--navy-light);color:var(--navy-dark);border-color:var(--navy);}
+.chip.type-capital{background:#EDE9FE;color:#4C1D95;border-color:#7C3AED;}
+.chip.type-recurring{background:#E0F2FE;color:#0C4A6E;border-color:#0284C7;}
 .receipt-upload{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:18px;text-align:center;cursor:pointer;color:var(--text2);font-size:14px;position:relative;background:var(--bg2);}
 .receipt-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
 .receipt-preview{display:flex;align-items:center;gap:10px;margin-top:10px;}
@@ -97,6 +99,7 @@ textarea{resize:vertical;min-height:60px;}
 a{color:var(--green-dark);}
 .divider{height:0.5px;background:var(--border);margin:6px 0 16px;}
 .form-section-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;}
+.cost-hint{font-size:11px;padding:8px 10px;border-radius:var(--radius);line-height:1.4;transition:background .2s,color .2s;}
 </style>
 </head>
 <body>
@@ -111,18 +114,16 @@ a{color:var(--green-dark);}
   <!-- ADD EXPENSE -->
   <div class="page active" id="page-add">
     <div class="card">
-
-      <!-- Basics -->
       <div class="form-section-label">Basics</div>
       <div class="row2">
         <div class="field"><label>Date</label><input type="date" id="f-date"/></div>
-        <div class="field"><label>Amount (₹)</label><input type="number" id="f-amount" placeholder="0" min="0" step="1" inputmode="numeric"/></div>
+        <div class="field"><label>Amount (&#8377;)</label><input type="number" id="f-amount" placeholder="0" min="0" step="1" inputmode="numeric"/></div>
       </div>
       <div class="row2">
         <div class="field">
           <label>Category</label>
           <select id="f-category">
-            <option value="">Select…</option>
+            <option value="">Select&#8230;</option>
             <option>Manpower / Personnel</option>
             <option>Equipment &amp; Software</option>
             <option>Travel</option>
@@ -137,36 +138,32 @@ a{color:var(--green-dark);}
         </div>
         <div class="field">
           <label>Grant / Fund <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
-          <input type="text" id="f-grant" placeholder="e.g. BIRAC BIG…"/>
+          <input type="text" id="f-grant" placeholder="e.g. BIRAC BIG&#8230;"/>
         </div>
       </div>
 
       <div class="divider"></div>
-
-      <!-- Vendor & Invoice -->
       <div class="form-section-label">Vendor &amp; Invoice</div>
       <div class="field">
         <label>Vendor / Payee <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
-        <input type="text" id="f-vendor" placeholder="Who was paid? e.g. Netlify, NNF Organiser…"/>
+        <input type="text" id="f-vendor" placeholder="Who was paid?"/>
       </div>
       <div class="row2">
         <div class="field">
           <label>Invoice No. <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
-          <input type="text" id="f-invoice" placeholder="INV-001, GST-2026…"/>
+          <input type="text" id="f-invoice" placeholder="INV-001&#8230;"/>
         </div>
         <div class="field">
           <label>GST Bill?</label>
           <div class="src-pills">
-            <button class="src-pill gst-yes" onclick="setGst(this,'Yes')">✓ Yes</button>
-            <button class="src-pill gst-no on" onclick="setGst(this,'No')">✗ No</button>
+            <button class="src-pill gst-yes" onclick="setGst(this,'Yes')">&#10003; Yes</button>
+            <button class="src-pill gst-no on" onclick="setGst(this,'No')">&#10007; No</button>
           </div>
           <input type="hidden" id="f-gst" value="No"/>
         </div>
       </div>
 
       <div class="divider"></div>
-
-      <!-- Payment -->
       <div class="form-section-label">Payment</div>
       <div class="field">
         <label>Payment source</label>
@@ -180,16 +177,31 @@ a{color:var(--green-dark);}
       </div>
 
       <div class="divider"></div>
-
-      <!-- Details -->
       <div class="form-section-label">Details</div>
+
+      <!-- COST TYPE — new field -->
+      <div class="row2" style="margin-bottom:14px;">
+        <div class="field" style="margin-bottom:0;">
+          <label>Cost Type</label>
+          <select id="f-cost-type" onchange="updateCostHint()">
+            <option value="Recurring">&#128257; Recurring</option>
+            <option value="Capital">&#128202; Capital (One-time)</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;justify-content:flex-end;">
+          <div id="cost-type-hint" class="cost-hint" style="background:#E0F2FE;color:#0C4A6E;">
+            Monthly operating cost — hosting, salaries, subscriptions
+          </div>
+        </div>
+      </div>
+
       <div class="field"><label>Description <span style="font-weight:400;color:var(--text3)">(optional)</span></label><input type="text" id="f-desc" placeholder="What was this expense for?"/></div>
-      <div class="field"><label>Notes <span style="font-weight:400;color:var(--text3)">(optional)</span></label><textarea id="f-notes" placeholder="Any additional notes…"></textarea></div>
+      <div class="field"><label>Notes <span style="font-weight:400;color:var(--text3)">(optional)</span></label><textarea id="f-notes" placeholder="Any additional notes&#8230;"></textarea></div>
       <div class="field">
         <label>Receipt <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
         <div class="receipt-upload">
           <input type="file" id="f-receipt" accept="image/*,application/pdf" onchange="handleReceiptSelect(event)"/>
-          <span id="receipt-label">📎 Tap to attach photo or PDF</span>
+          <span id="receipt-label">&#128206; Tap to attach photo or PDF</span>
         </div>
         <div id="receipt-preview" style="display:none" class="receipt-preview">
           <img id="receipt-thumb" class="receipt-img" src="" alt=""/>
@@ -204,17 +216,17 @@ a{color:var(--green-dark);}
     </div>
   </div>
 
-  <!-- BANK — unchanged -->
+  <!-- BANK -->
   <div class="page" id="page-bank">
     <div class="card">
       <div class="section-title">Log transaction</div>
       <div class="tx-type-row">
         <button class="tx-type-btn dep-on" id="btn-dep" onclick="setTxType('deposit')">+ Deposit</button>
-        <button class="tx-type-btn" id="btn-wit" onclick="setTxType('withdrawal')">− Withdrawal</button>
+        <button class="tx-type-btn" id="btn-wit" onclick="setTxType('withdrawal')">&#8722; Withdrawal</button>
       </div>
       <div class="row2">
         <div class="field"><label>Date</label><input type="date" id="b-date"/></div>
-        <div class="field"><label>Amount (₹)</label><input type="number" id="b-amount" placeholder="0" min="0" step="1" inputmode="numeric"/></div>
+        <div class="field"><label>Amount (&#8377;)</label><input type="number" id="b-amount" placeholder="0" min="0" step="1" inputmode="numeric"/></div>
       </div>
       <div class="field"><label>Description <span style="font-weight:400;color:var(--text3)">(optional)</span></label><input type="text" id="b-desc" placeholder="Reason or source"/></div>
       <div class="field"><label>Notes <span style="font-weight:400;color:var(--text3)">(optional)</span></label><input type="text" id="b-notes" placeholder="Reference, account, etc."/></div>
@@ -224,9 +236,9 @@ a{color:var(--green-dark);}
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <span class="section-title" style="margin-bottom:0">History</span>
-        <button class="refresh-btn" onclick="loadBankFromSheet()">↻ Refresh</button>
+        <button class="refresh-btn" onclick="loadBankFromSheet()">&#8635; Refresh</button>
       </div>
-      <div id="bank-list"><div class="loading"><span class="spin"></span>Loading…</div></div>
+      <div id="bank-list"><div class="loading"><span class="spin"></span>Loading&#8230;</div></div>
     </div>
   </div>
 
@@ -234,45 +246,61 @@ a{color:var(--green-dark);}
   <div class="page" id="page-dashboard">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <span class="section-title" style="margin-bottom:0">Overview</span>
-      <button class="refresh-btn" onclick="loadDashboard()">↻ Refresh</button>
+      <button class="refresh-btn" onclick="loadDashboard()">&#8635; Refresh</button>
     </div>
     <div class="metric-grid">
       <div class="metric" style="background:var(--green-light);">
         <div class="metric-label" style="color:var(--green-dark);">Bank balance</div>
-        <div class="metric-value" id="d-balance" style="color:var(--green-dark);">—</div>
+        <div class="metric-value" id="d-balance" style="color:var(--green-dark);">&#8212;</div>
       </div>
       <div class="metric">
         <div class="metric-label">Total expenses</div>
-        <div class="metric-value" id="d-total">—</div>
+        <div class="metric-value" id="d-total">&#8212;</div>
       </div>
     </div>
     <div class="metric-grid-3">
       <div class="metric">
         <div class="metric-label">This month</div>
-        <div class="metric-value" id="d-month" style="font-size:16px;">—</div>
+        <div class="metric-value" id="d-month" style="font-size:16px;">&#8212;</div>
       </div>
       <div class="metric" style="background:var(--blue-light);">
         <div class="metric-label" style="color:var(--blue-dark);">Deposits</div>
-        <div class="metric-value" style="color:var(--blue-dark);font-size:16px;" id="d-deps">—</div>
+        <div class="metric-value" style="color:var(--blue-dark);font-size:16px;" id="d-deps">&#8212;</div>
       </div>
       <div class="metric" style="background:var(--amber-light);">
         <div class="metric-label" style="color:var(--amber-dark);">Withdrawn</div>
-        <div class="metric-value" style="color:var(--amber-dark);font-size:16px;" id="d-wits">—</div>
+        <div class="metric-value" style="color:var(--amber-dark);font-size:16px;" id="d-wits">&#8212;</div>
       </div>
     </div>
+
+    <!-- Capital vs Recurring — new split row -->
+    <div class="metric-grid">
+      <div class="metric" style="background:#EDE9FE;">
+        <div class="metric-label" style="color:#4C1D95;">&#128202; Capital (One-time)</div>
+        <div class="metric-value" id="d-capital" style="color:#4C1D95;font-size:18px;">&#8212;</div>
+        <div style="font-size:10px;color:#6D28D9;margin-top:3px;">investment to recover</div>
+      </div>
+      <div class="metric" style="background:#E0F2FE;">
+        <div class="metric-label" style="color:#0C4A6E;">&#128257; Recurring</div>
+        <div class="metric-value" id="d-recurring" style="color:#0C4A6E;font-size:18px;">&#8212;</div>
+        <div style="font-size:10px;color:#0369A1;margin-top:3px;">operating expenses to date</div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="section-title">By category</div>
-      <div id="d-cats"><div class="loading"><span class="spin"></span>Loading…</div></div>
+      <div id="d-cats"><div class="loading"><span class="spin"></span>Loading&#8230;</div></div>
     </div>
     <div class="card">
       <div class="section-title">By grant / fund</div>
-      <div id="d-grants"><div class="loading"><span class="spin"></span>Loading…</div></div>
+      <div id="d-grants"><div class="loading"><span class="spin"></span>Loading&#8230;</div></div>
     </div>
     <div class="card">
       <div class="section-title">Recent expenses</div>
       <div class="filter-row" id="filter-row-cat"></div>
-      <div class="filter-row" id="filter-row-grant" style="margin-bottom:12px;"></div>
-      <div id="d-list"><div class="loading"><span class="spin"></span>Loading…</div></div>
+      <div class="filter-row" id="filter-row-grant"></div>
+      <div class="filter-row" id="filter-row-type" style="margin-bottom:12px;"></div>
+      <div id="d-list"><div class="loading"><span class="spin"></span>Loading&#8230;</div></div>
     </div>
     <div class="status" id="dash-status"></div>
   </div>
@@ -297,395 +325,208 @@ a{color:var(--green-dark);}
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwMfxxujJDNEwOqpBAbAD-5IJtNSVLte2gse1ZVzlw1MuzTwYQwejgTAsTE4h5VGpnw/exec';
 
-const CAT_C={
-  'Manpower / Personnel':      {bar:'#BA7517',bg:'#FAEEDA',text:'#633806'},
-  'Equipment & Software':      {bar:'#378ADD',bg:'#E6F1FB',text:'#185FA5'},
-  'Travel':                    {bar:'#1D9E75',bg:'#E1F5EE',text:'#0F6E56'},
-  'Conferences & Events':      {bar:'#D4537E',bg:'#FBEAF0',text:'#993556'},
-  'Consumables & Printing':    {bar:'#888780',bg:'#F1EFE8',text:'#444441'},
-  'Legal & Compliance':        {bar:'#533AB7',bg:'#EEEDFE',text:'#26215C'},
-  'Utilities':                 {bar:'#0F6E56',bg:'#9FE1CB',text:'#04342C'},
-  'Pre-Grant (not claimable)': {bar:'#E24B4A',bg:'#FCEBEB',text:'#A32D2D'},
-  'Company (no grant)':        {bar:'#888780',bg:'#F1EFE8',text:'#444441'},
-  'Credit Card Payment':       {bar:'#E24B4A',bg:'#FCEBEB',text:'#A32D2D'}
-};
-const SRC_C={
-  'Bank':            {bg:'#E6F1FB',text:'#185FA5'},
-  'Cash':            {bg:'#EAF3DE',text:'#27500A'},
-  'Personal Account':{bg:'#FAEEDA',text:'#633806'},
-  'Credit Card':     {bg:'#FBEAF0',text:'#993556'}
-};
-const GRANT_PAL=[
-  {bar:'#1B3F8B',bg:'#E6EEFF',text:'#0D2055'},
-  {bar:'#1D9E75',bg:'#E1F5EE',text:'#0F6E56'},
-  {bar:'#7F77DD',bg:'#EEEDFE',text:'#3C3489'},
-  {bar:'#BA7517',bg:'#FAEEDA',text:'#633806'},
-  {bar:'#D4537E',bg:'#FBEAF0',text:'#993556'}
-];
-const grantColorMap={};
-let grantColorIdx=0;
-function grantColor(name){
-  if(!name) return {bar:'#a0a09b',bg:'#F1EFE8',text:'#444441'};
-  if(!grantColorMap[name]){grantColorMap[name]=GRANT_PAL[grantColorIdx%GRANT_PAL.length];grantColorIdx++;}
-  return grantColorMap[name];
+const CAT_C={'Manpower / Personnel':{bar:'#BA7517',bg:'#FAEEDA',text:'#633806'},'Equipment & Software':{bar:'#378ADD',bg:'#E6F1FB',text:'#185FA5'},'Travel':{bar:'#1D9E75',bg:'#E1F5EE',text:'#0F6E56'},'Conferences & Events':{bar:'#D4537E',bg:'#FBEAF0',text:'#993556'},'Consumables & Printing':{bar:'#888780',bg:'#F1EFE8',text:'#444441'},'Legal & Compliance':{bar:'#533AB7',bg:'#EEEDFE',text:'#26215C'},'Utilities':{bar:'#0F6E56',bg:'#9FE1CB',text:'#04342C'},'Pre-Grant (not claimable)':{bar:'#E24B4A',bg:'#FCEBEB',text:'#A32D2D'},'Company (no grant)':{bar:'#888780',bg:'#F1EFE8',text:'#444441'},'Credit Card Payment':{bar:'#E24B4A',bg:'#FCEBEB',text:'#A32D2D'}};
+const SRC_C={'Bank':{bg:'#E6F1FB',text:'#185FA5'},'Cash':{bg:'#EAF3DE',text:'#27500A'},'Personal Account':{bg:'#FAEEDA',text:'#633806'},'Credit Card':{bg:'#FBEAF0',text:'#993556'}};
+const GRANT_PAL=[{bar:'#1B3F8B',bg:'#E6EEFF',text:'#0D2055'},{bar:'#1D9E75',bg:'#E1F5EE',text:'#0F6E56'},{bar:'#7F77DD',bg:'#EEEDFE',text:'#3C3489'},{bar:'#BA7517',bg:'#FAEEDA',text:'#633806'},{bar:'#D4537E',bg:'#FBEAF0',text:'#993556'}];
+const grantColorMap={};let grantColorIdx=0;
+function grantColor(name){if(!name)return{bar:'#a0a09b',bg:'#F1EFE8',text:'#444441'};if(!grantColorMap[name]){grantColorMap[name]=GRANT_PAL[grantColorIdx%GRANT_PAL.length];grantColorIdx++;}return grantColorMap[name];}
+
+let activeFilter='All',activeGrantFilter='All',activeTypeFilter='All';
+let txType='deposit',receiptFile=null,receiptB64=null,cachedExpRows=[];
+
+function updateCostHint(){
+  const v=document.getElementById('f-cost-type').value,h=document.getElementById('cost-type-hint');
+  if(v==='Capital'){h.textContent='One-time investment — ISO cert, CDSCO fees, equipment, dev build';h.style.background='#EDE9FE';h.style.color='#4C1D95';}
+  else{h.textContent='Monthly operating cost — hosting, salaries, subscriptions';h.style.background='#E0F2FE';h.style.color='#0C4A6E';}
 }
-
-let activeFilter='All', activeGrantFilter='All';
-let txType='deposit', receiptFile=null, receiptB64=null;
-let cachedExpRows=[];
-
 function showPage(page,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tabbar-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  btn.classList.add('active');
-  if(page==='dashboard'){ cachedExpRows=[]; loadDashboard(); }
-  if(page==='bank') loadBankFromSheet();
+  document.getElementById('page-'+page).classList.add('active');btn.classList.add('active');
+  if(page==='dashboard'){cachedExpRows=[];loadDashboard();}
+  if(page==='bank')loadBankFromSheet();
 }
-function setSrc(el,val){
-  document.querySelectorAll('.src-pill:not(.gst-yes):not(.gst-no)').forEach(p=>p.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('f-source').value=val;
-}
-function setGst(el,val){
-  document.querySelectorAll('.gst-yes,.gst-no').forEach(p=>p.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('f-gst').value=val;
-}
-function setTxType(t){
-  txType=t;
-  document.getElementById('btn-dep').className='tx-type-btn'+(t==='deposit'?' dep-on':'');
-  document.getElementById('btn-wit').className='tx-type-btn'+(t==='withdrawal'?' wit-on':'');
-}
-function setStatus(id,msg,type){
-  const el=document.getElementById(id);
-  el.textContent=msg; el.className='status '+(type||'');
-}
-function fmt(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
-function badge(cat){
-  const c=CAT_C[cat]||{bg:'#F1EFE8',text:'#444441'};
-  return`<span class="badge" style="background:${c.bg};color:${c.text}">${cat}</span>`;
-}
-function srcBadge(src){
-  const c=SRC_C[src]||{bg:'#F1EFE8',text:'#444441'};
-  return`<span class="badge" style="background:${c.bg};color:${c.text}">${src||'Bank'}</span>`;
-}
-function grantBadge(grant){
-  if(!grant) return '';
-  const c=grantColor(grant);
-  return`<span class="badge" style="background:${c.bg};color:${c.text}">🏦 ${grant}</span>`;
-}
-function gstBadge(gst){
-  if(!gst||gst==='No') return '';
-  return`<span class="badge" style="background:#E1F5EE;color:#0F6E56">GST ✓</span>`;
-}
+function setSrc(el,val){document.querySelectorAll('.src-pill:not(.gst-yes):not(.gst-no)').forEach(p=>p.classList.remove('on'));el.classList.add('on');document.getElementById('f-source').value=val;}
+function setGst(el,val){document.querySelectorAll('.gst-yes,.gst-no').forEach(p=>p.classList.remove('on'));el.classList.add('on');document.getElementById('f-gst').value=val;}
+function setTxType(t){txType=t;document.getElementById('btn-dep').className='tx-type-btn'+(t==='deposit'?' dep-on':'');document.getElementById('btn-wit').className='tx-type-btn'+(t==='withdrawal'?' wit-on':'');}
+function setStatus(id,msg,type){const el=document.getElementById(id);el.textContent=msg;el.className='status '+(type||'');}
+function fmt(n){return '\u20B9'+Math.round(n).toLocaleString('en-IN');}
+function badge(cat){const c=CAT_C[cat]||{bg:'#F1EFE8',text:'#444441'};return`<span class="badge" style="background:${c.bg};color:${c.text}">${cat}</span>`;}
+function costTypeBadge(ct){if(!ct)return'';const isC=ct==='Capital';return`<span class="badge" style="background:${isC?'#EDE9FE':'#E0F2FE'};color:${isC?'#4C1D95':'#0C4A6E'}">${isC?'Capital':'Recurring'}</span>`;}
+function srcBadge(src){const c=SRC_C[src]||{bg:'#F1EFE8',text:'#444441'};return`<span class="badge" style="background:${c.bg};color:${c.text}">${src||'Bank'}</span>`;}
+function grantBadge(grant){if(!grant)return'';const c=grantColor(grant);return`<span class="badge" style="background:${c.bg};color:${c.text}">${grant}</span>`;}
+function gstBadge(gst){if(!gst||gst==='No')return'';return`<span class="badge" style="background:#E1F5EE;color:#0F6E56">GST</span>`;}
 
 function handleReceiptSelect(e){
-  const file=e.target.files[0]; if(!file) return;
-  receiptFile=file;
-  if(file.type.startsWith('image/')){
-    compressImage(file,1000,0.75).then(({b64,dataUrl})=>{
-      receiptB64=b64;
-      document.getElementById('receipt-thumb').src=dataUrl;
-      document.getElementById('receipt-preview').style.display='flex';
-    });
-  } else {
-    const reader=new FileReader();
-    reader.onload=ev=>{ receiptB64=ev.target.result.split(',')[1]; };
-    reader.readAsDataURL(file);
-  }
-  document.getElementById('receipt-label').textContent='📎 Receipt attached';
+  const file=e.target.files[0];if(!file)return;receiptFile=file;
+  if(file.type.startsWith('image/')){compressImage(file,1000,0.75).then(({b64,dataUrl})=>{receiptB64=b64;document.getElementById('receipt-thumb').src=dataUrl;document.getElementById('receipt-preview').style.display='flex';});}
+  else{const reader=new FileReader();reader.onload=ev=>{receiptB64=ev.target.result.split(',')[1];};reader.readAsDataURL(file);}
+  document.getElementById('receipt-label').textContent='Receipt attached';
   document.getElementById('receipt-name').textContent=file.name;
   document.getElementById('receipt-preview').style.display='flex';
 }
-function compressImage(file,maxPx,quality){
-  return new Promise(resolve=>{
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      const img=new Image();
-      img.onload=()=>{
-        let w=img.width,h=img.height;
-        if(w>maxPx||h>maxPx){
-          if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}
-          else{w=Math.round(w*maxPx/h);h=maxPx;}
-        }
-        const canvas=document.createElement('canvas');
-        canvas.width=w;canvas.height=h;
-        canvas.getContext('2d').drawImage(img,0,0,w,h);
-        const dataUrl=canvas.toDataURL('image/jpeg',quality);
-        resolve({b64:dataUrl.split(',')[1],dataUrl});
-      };
-      img.src=ev.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-function clearReceipt(){
-  receiptFile=null;receiptB64=null;
-  document.getElementById('f-receipt').value='';
-  document.getElementById('receipt-preview').style.display='none';
-  document.getElementById('receipt-label').textContent='📎 Tap to attach photo or PDF';
-  document.getElementById('receipt-thumb').src='';
-}
+function compressImage(file,maxPx,quality){return new Promise(resolve=>{const reader=new FileReader();reader.onload=ev=>{const img=new Image();img.onload=()=>{let w=img.width,h=img.height;if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;}}const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);const dataUrl=canvas.toDataURL('image/jpeg',quality);resolve({b64:dataUrl.split(',')[1],dataUrl});};img.src=ev.target.result;};reader.readAsDataURL(file);});}
+function clearReceipt(){receiptFile=null;receiptB64=null;document.getElementById('f-receipt').value='';document.getElementById('receipt-preview').style.display='none';document.getElementById('receipt-label').textContent='Tap to attach photo or PDF';document.getElementById('receipt-thumb').src='';}
+
 async function uploadReceipt(date,category,desc){
-  if(!receiptFile||!receiptB64) return '';
+  if(!receiptFile||!receiptB64)return'';
   const ext=receiptFile.type==='application/pdf'?'pdf':'jpg';
   const safeCat=category.replace(/[^a-zA-Z0-9]/g,'_');
   const safeDesc=desc?('_'+desc.replace(/[^a-zA-Z0-9]/g,'_').substring(0,30)):'';
   const fileName=`${date}_${safeCat}${safeDesc}.${ext}`;
   const mimeType=receiptFile.type==='application/pdf'?'application/pdf':'image/jpeg';
-  const res=await fetch(SCRIPT_URL,{
-    method:'POST',headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({action:'uploadFile',fileName,mimeType,base64:receiptB64})
-  });
-  if(!res.ok) return '';
-  const json=await res.json();
-  return json.fileUrl||'';
+  const res=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'uploadFile',fileName,mimeType,base64:receiptB64})});
+  if(!res.ok)return'';
+  const json=await res.json();return json.fileUrl||'';
 }
-async function syncToSheets(tab,row){
-  await fetch(SCRIPT_URL,{
-    method:'POST',mode:'no-cors',
-    headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({action:'appendRow',tab,row})
-  });
-}
+async function syncToSheets(tab,row){await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'appendRow',tab,row})});}
 async function fetchFromSheet(tab){
   const url=`${SCRIPT_URL}?tab=${encodeURIComponent(tab)}&t=${Date.now()}`;
-  let res;
-  try{ res=await fetch(url); }
-  catch(e){ throw new Error('Network error — check internet connection'); }
-  if(!res.ok) throw new Error('Script returned HTTP '+res.status);
-  let json;
-  try{ json=await res.json(); }
-  catch(e){ throw new Error('Bad response from Apps Script — redeploy may be needed'); }
-  if(!json.success) throw new Error(json.error||'Sheet error');
+  let res;try{res=await fetch(url);}catch(e){throw new Error('Network error');}
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  let json;try{json=await res.json();}catch(e){throw new Error('Bad response — redeploy Apps Script');}
+  if(!json.success)throw new Error(json.error||'Sheet error');
   return json.data||[];
 }
 
 async function saveExpense(){
-  const date    = document.getElementById('f-date').value;
-  const amount  = document.getElementById('f-amount').value;
-  const category= document.getElementById('f-category').value;
-  const grant   = document.getElementById('f-grant').value.trim();
-  const vendor  = document.getElementById('f-vendor').value.trim();
-  const invoice = document.getElementById('f-invoice').value.trim();
-  const gst     = document.getElementById('f-gst').value;
-  const source  = document.getElementById('f-source').value;
-  const desc    = document.getElementById('f-desc').value.trim();
-  const notes   = document.getElementById('f-notes').value.trim();
-  const receiptName = receiptFile?receiptFile.name:'';
-
+  const date=document.getElementById('f-date').value,amount=document.getElementById('f-amount').value,category=document.getElementById('f-category').value;
+  const costType=document.getElementById('f-cost-type').value;
+  const grant=document.getElementById('f-grant').value.trim(),vendor=document.getElementById('f-vendor').value.trim(),invoice=document.getElementById('f-invoice').value.trim();
+  const gst=document.getElementById('f-gst').value,source=document.getElementById('f-source').value;
+  const desc=document.getElementById('f-desc').value.trim(),notes=document.getElementById('f-notes').value.trim();
+  const receiptName=receiptFile?receiptFile.name:'';
   if(!date||!amount||!category){setStatus('save-status','Date, amount and category are required','err');return;}
-  const btn=document.getElementById('save-btn'); btn.disabled=true;
+  const btn=document.getElementById('save-btn');btn.disabled=true;
   try{
     let receiptLink='';
-    if(receiptFile&&receiptB64){
-      setStatus('save-status','Uploading receipt…','');
-      receiptLink=await uploadReceipt(date,category,desc);
-    }
-    setStatus('save-status','Saving to Sheets…','');
+    if(receiptFile&&receiptB64){setStatus('save-status','Uploading receipt...','');receiptLink=await uploadReceipt(date,category,desc);}
+    setStatus('save-status','Saving to Sheets...','');
     const ts=new Date().toISOString();
-    // Sheet column order:
-    // Date | Amount | Category | Grant/Fund | Vendor/Payee | Invoice No. | GST Bill? | Source | Description | Notes | Receipt | Saved At
-    await syncToSheets('Expenses',[date,Math.round(parseFloat(amount)),category,grant,vendor,invoice,gst,source,desc,notes,receiptLink||receiptName,ts]);
+    // Column order: Date|Amount|Category|Grant/Fund|Vendor/Payee|Invoice No.|GST Bill?|Source|Description|Notes|Receipt|Saved At|Cost Type
+    await syncToSheets('Expenses',[date,Math.round(parseFloat(amount)),category,grant,vendor,invoice,gst,source,desc,notes,receiptLink||receiptName,ts,costType]);
     if(source==='Bank'||category==='Credit Card Payment'){
       const bankDesc=desc?`Expense: ${desc} (${category})`:`Expense: ${category}`;
       await syncToSheets('Bank',[date,'Withdrawal',Math.round(parseFloat(amount)),bankDesc,'Auto from expense',ts]);
     }
-    // Reset all fields
     clearReceipt();
     ['f-amount','f-desc','f-notes','f-vendor','f-invoice'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('f-category').value='';
-    document.getElementById('f-grant').value='';
+    document.getElementById('f-category').value='';document.getElementById('f-grant').value='';
+    document.getElementById('f-cost-type').value='Recurring';updateCostHint();
     document.getElementById('f-gst').value='No';
-    document.querySelectorAll('.gst-yes,.gst-no').forEach(p=>p.classList.remove('on'));
-    document.querySelector('.gst-no').classList.add('on');
-    document.querySelectorAll('.src-pill:not(.gst-yes):not(.gst-no)').forEach((p,i)=>p.classList.toggle('on',i===0));
-    document.getElementById('f-source').value='Bank';
-    setStatus('save-status',(source==='Bank'||category==='Credit Card Payment')?'Saved ✓ (bank balance updated)':'Saved ✓','ok');
-  }catch(err){
-    setStatus('save-status','Error: '+err.message.substring(0,80),'err');
-  }
+    document.querySelectorAll('.gst-yes,.gst-no').forEach(p=>p.classList.remove('on'));document.querySelector('.gst-no').classList.add('on');
+    document.querySelectorAll('.src-pill:not(.gst-yes):not(.gst-no)').forEach((p,i)=>p.classList.toggle('on',i===0));document.getElementById('f-source').value='Bank';
+    setStatus('save-status',(source==='Bank'||category==='Credit Card Payment')?'Saved (bank balance updated)':'Saved','ok');
+  }catch(err){setStatus('save-status','Error: '+err.message.substring(0,80),'err');}
   btn.disabled=false;
 }
 
 async function saveBank(){
-  const date  =document.getElementById('b-date').value;
-  const amount=document.getElementById('b-amount').value;
-  const desc  =document.getElementById('b-desc').value.trim();
-  const notes =document.getElementById('b-notes').value.trim();
+  const date=document.getElementById('b-date').value,amount=document.getElementById('b-amount').value;
+  const desc=document.getElementById('b-desc').value.trim(),notes=document.getElementById('b-notes').value.trim();
   if(!date||!amount){setStatus('bank-status','Date and amount are required','err');return;}
-  const btn=document.getElementById('bank-btn'); btn.disabled=true;
-  setStatus('bank-status','Saving to Sheets…','');
+  const btn=document.getElementById('bank-btn');btn.disabled=true;setStatus('bank-status','Saving...','');
   try{
     await syncToSheets('Bank',[date,txType==='deposit'?'Deposit':'Withdrawal',Math.round(parseFloat(amount)),desc,notes,new Date().toISOString()]);
-    document.getElementById('b-amount').value='';
-    document.getElementById('b-desc').value='';
-    document.getElementById('b-notes').value='';
-    setStatus('bank-status','Saved to Google Sheets ✓','ok');
-    loadBankFromSheet();
-  }catch(err){
-    setStatus('bank-status','Error: '+err.message.substring(0,80),'err');
-  }
+    document.getElementById('b-amount').value='';document.getElementById('b-desc').value='';document.getElementById('b-notes').value='';
+    setStatus('bank-status','Saved','ok');loadBankFromSheet();
+  }catch(err){setStatus('bank-status','Error: '+err.message.substring(0,80),'err');}
   btn.disabled=false;
 }
 
 async function loadBankFromSheet(){
-  document.getElementById('bank-list').innerHTML='<div class="loading"><span class="spin"></span>Loading from Sheet…</div>';
+  document.getElementById('bank-list').innerHTML='<div class="loading"><span class="spin"></span>Loading...</div>';
   try{
     const rows=await fetchFromSheet('Bank');
     if(!rows.length){document.getElementById('bank-list').innerHTML='<div class="empty">No transactions yet</div>';return;}
     const sorted=[...rows].sort((a,b)=>new Date(a['Date'])-new Date(b['Date']));
     let bal=0;
-    const withBal=sorted.map(r=>{
-      const amt=parseFloat(r['Amount'])||0;
-      bal+=(r['Type']||'').toLowerCase()==='deposit'?amt:-amt;
-      return{...r,_bal:bal};
-    }).reverse();
+    const withBal=sorted.map(r=>{const amt=parseFloat(r['Amount'])||0;bal+=(r['Type']||'').toLowerCase()==='deposit'?amt:-amt;return{...r,_bal:bal};}).reverse();
     document.getElementById('bank-list').innerHTML=withBal.map(t=>{
       const isDep=(t['Type']||'').toLowerCase()==='deposit';
-      return`<div class="item">
-        <div>
-          <div class="item-desc">${t['Description']||t['Type']||'—'}</div>
-          <div class="item-meta">
-            <span>${t['Date']}</span>
-            <span class="badge" style="background:${isDep?'#E1F5EE':'#FCEBEB'};color:${isDep?'#0F6E56':'#A32D2D'}">${t['Type']}</span>
-            ${t['Notes']?'<span>'+t['Notes']+'</span>':''}
-            <span style="color:var(--text3)">bal: ${fmt(t._bal)}</span>
-          </div>
-        </div>
-        <div class="item-right"><div class="item-amt ${isDep?'dep':'wit'}">${isDep?'+':'−'}${fmt(parseFloat(t['Amount'])||0)}</div></div>
-      </div>`;
+      return`<div class="item"><div><div class="item-desc">${t['Description']||t['Type']||'—'}</div><div class="item-meta"><span>${t['Date']}</span><span class="badge" style="background:${isDep?'#E1F5EE':'#FCEBEB'};color:${isDep?'#0F6E56':'#A32D2D'}">${t['Type']}</span>${t['Notes']?'<span>'+t['Notes']+'</span>':''}<span style="color:var(--text3)">bal: ${fmt(t._bal)}</span></div></div><div class="item-right"><div class="item-amt ${isDep?'dep':'wit'}">${isDep?'+':'−'}${fmt(parseFloat(t['Amount'])||0)}</div></div></div>`;
     }).join('');
-  }catch(err){
-    document.getElementById('bank-list').innerHTML=`<div class="empty">Could not load: ${err.message}</div>`;
-  }
+  }catch(err){document.getElementById('bank-list').innerHTML=`<div class="empty">Could not load: ${err.message}</div>`;}
 }
 
 async function loadDashboard(){
   setStatus('dash-status','','');
-  ['d-balance','d-total','d-month','d-deps','d-wits'].forEach(id=>document.getElementById(id).textContent='—');
-  ['d-cats','d-grants','d-list'].forEach(id=>document.getElementById(id).innerHTML='<div class="loading"><span class="spin"></span>Loading…</div>');
-  document.getElementById('filter-row-cat').innerHTML='';
-  document.getElementById('filter-row-grant').innerHTML='';
+  ['d-balance','d-total','d-month','d-deps','d-wits','d-capital','d-recurring'].forEach(id=>document.getElementById(id).textContent='—');
+  ['d-cats','d-grants','d-list'].forEach(id=>document.getElementById(id).innerHTML='<div class="loading"><span class="spin"></span>Loading...</div>');
+  document.getElementById('filter-row-cat').innerHTML='';document.getElementById('filter-row-grant').innerHTML='';document.getElementById('filter-row-type').innerHTML='';
   try{
-    const [expRows,bankRows]=await Promise.all([
-      fetchFromSheet('Expenses').catch(()=>[]),
-      fetchFromSheet('Bank').catch(()=>[])
-    ]);
-
-    // Bank metrics
+    const [expRows,bankRows]=await Promise.all([fetchFromSheet('Expenses').catch(()=>[]),fetchFromSheet('Bank').catch(()=>[])]);
     let totalDep=0,totalWit=0;
-    bankRows.forEach(r=>{
-      const amt=parseFloat(r['Amount'])||0;
-      if((r['Type']||'').toLowerCase()==='deposit') totalDep+=amt;
-      else totalWit+=amt;
-    });
+    bankRows.forEach(r=>{const amt=parseFloat(r['Amount'])||0;if((r['Type']||'').toLowerCase()==='deposit')totalDep+=amt;else totalWit+=amt;});
     const balance=totalDep-totalWit;
     const balEl=document.getElementById('d-balance');
-    balEl.textContent=balance>=0?fmt(balance):'−'+fmt(Math.abs(balance));
-    balEl.style.color=balance>=0?'var(--green-dark)':'var(--red-dark)';
-    document.getElementById('d-deps').textContent=fmt(totalDep);
-    document.getElementById('d-wits').textContent=fmt(totalWit);
-
-    if(!expRows.length){
-      ['d-total','d-month'].forEach(id=>document.getElementById(id).textContent='₹0');
-      ['d-cats','d-grants','d-list'].forEach(id=>document.getElementById(id).innerHTML='<div class="empty">No expenses yet</div>');
-      return;
-    }
-
+    balEl.textContent=balance>=0?fmt(balance):'−'+fmt(Math.abs(balance));balEl.style.color=balance>=0?'var(--green-dark)':'var(--red-dark)';
+    document.getElementById('d-deps').textContent=fmt(totalDep);document.getElementById('d-wits').textContent=fmt(totalWit);
+    if(!expRows.length){['d-total','d-month','d-capital','d-recurring'].forEach(id=>document.getElementById(id).textContent=fmt(0));['d-cats','d-grants','d-list'].forEach(id=>document.getElementById(id).innerHTML='<div class="empty">No expenses yet</div>');return;}
     const now=new Date();
-    const total=expRows.reduce((s,r)=>s+(parseFloat(r['Amount'])||0),0);
-    const monthTotal=expRows.filter(r=>{
-      const d=new Date(r['Date']);
-      return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
-    }).reduce((s,r)=>s+(parseFloat(r['Amount'])||0),0);
-    document.getElementById('d-total').textContent=fmt(total);
-    document.getElementById('d-month').textContent=fmt(monthTotal);
+    document.getElementById('d-total').textContent=fmt(expRows.reduce((s,r)=>s+(parseFloat(r['Amount'])||0),0));
+    document.getElementById('d-month').textContent=fmt(expRows.filter(r=>{const d=new Date(r['Date']);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).reduce((s,r)=>s+(parseFloat(r['Amount'])||0),0));
+
+    // Capital vs Recurring
+    let cap=0,rec=0;
+    expRows.forEach(r=>{const a=parseFloat(r['Amount'])||0,ct=(r['Cost Type']||'').trim();if(ct==='Capital')cap+=a;else rec+=a;});
+    document.getElementById('d-capital').textContent=fmt(cap);document.getElementById('d-recurring').textContent=fmt(rec);
 
     // By Category
-    const cats={};
-    expRows.forEach(r=>{const c=r['Category']||'Other';cats[c]=(cats[c]||0)+(parseFloat(r['Amount'])||0);});
-    const sortedCats=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
-    const maxCat=sortedCats[0]?.[1]||1;
-    document.getElementById('d-cats').innerHTML=sortedCats.map(([cat,amt])=>{
-      const c=CAT_C[cat]||{bar:'#1D9E75'};
-      return`<div class="cat-row"><span class="cat-name">${cat}</span><div class="cat-bar-wrap"><div class="cat-bar" style="width:${Math.round(amt/maxCat*100)}%;background:${c.bar}"></div></div><span class="cat-amt">${fmt(amt)}</span></div>`;
-    }).join('');
+    const cats={};expRows.forEach(r=>{const c=r['Category']||'Other';cats[c]=(cats[c]||0)+(parseFloat(r['Amount'])||0);});
+    const sortedCats=Object.entries(cats).sort((a,b)=>b[1]-a[1]);const maxCat=sortedCats[0]?.[1]||1;
+    document.getElementById('d-cats').innerHTML=sortedCats.map(([cat,amt])=>{const c=CAT_C[cat]||{bar:'#1D9E75'};return`<div class="cat-row"><span class="cat-name">${cat}</span><div class="cat-bar-wrap"><div class="cat-bar" style="width:${Math.round(amt/maxCat*100)}%;background:${c.bar}"></div></div><span class="cat-amt">${fmt(amt)}</span></div>`;}).join('');
 
     // By Grant
-    const grants={};
-    expRows.forEach(r=>{
-      const g=(r['Grant / Fund']||'').trim();
-      const key=g||'(unassigned)';
-      grants[key]=(grants[key]||0)+(parseFloat(r['Amount'])||0);
-    });
-    const sortedGrants=Object.entries(grants).sort((a,b)=>b[1]-a[1]);
-    const maxGrant=sortedGrants[0]?.[1]||1;
-    document.getElementById('d-grants').innerHTML=sortedGrants.map(([g,amt])=>{
-      const c=g==='(unassigned)'?{bar:'#a0a09b'}:grantColor(g);
-      return`<div class="cat-row"><span class="cat-name">${g}</span><div class="cat-bar-wrap"><div class="cat-bar" style="width:${Math.round(amt/maxGrant*100)}%;background:${c.bar}"></div></div><span class="cat-amt">${fmt(amt)}</span></div>`;
-    }).join('');
+    const grants={};expRows.forEach(r=>{const g=(r['Grant / Fund']||'').trim();const key=g||'(unassigned)';grants[key]=(grants[key]||0)+(parseFloat(r['Amount'])||0);});
+    const sortedGrants=Object.entries(grants).sort((a,b)=>b[1]-a[1]);const maxGrant=sortedGrants[0]?.[1]||1;
+    document.getElementById('d-grants').innerHTML=sortedGrants.map(([g,amt])=>{const c=g==='(unassigned)'?{bar:'#a0a09b'}:grantColor(g);return`<div class="cat-row"><span class="cat-name">${g}</span><div class="cat-bar-wrap"><div class="cat-bar" style="width:${Math.round(amt/maxGrant*100)}%;background:${c.bar}"></div></div><span class="cat-amt">${fmt(amt)}</span></div>`;}).join('');
 
-    // Sort + cache
-    const sortedExp=[...expRows].sort((a,b)=>new Date(b['Date'])-new Date(a['Date']));
-    cachedExpRows=sortedExp;
+    cachedExpRows=[...expRows].sort((a,b)=>new Date(b['Date'])-new Date(a['Date']));
 
     // Category filter
-    const allCats=['All',...new Set(sortedExp.map(r=>r['Category']).filter(Boolean))];
     activeFilter='All';
-    document.getElementById('filter-row-cat').innerHTML=
-      '<span class="filter-label">Cat:</span>'+
-      allCats.map(c=>`<button class="chip ${c===activeFilter?'on':''}" onclick="setFilter('${c.replace(/'/g,"\\'")}')"> ${c}</button>`).join('');
+    document.getElementById('filter-row-cat').innerHTML='<span class="filter-label">Cat:</span>'+['All',...new Set(cachedExpRows.map(r=>r['Category']).filter(Boolean))].map(c=>`<button class="chip ${c==='All'?'on':''}" onclick="setFilter('${c.replace(/'/g,"\\'")}')">${c}</button>`).join('');
 
     // Grant filter
-    const allGrants=['All',...new Set(sortedExp.map(r=>(r['Grant / Fund']||'').trim()).filter(Boolean))];
+    const allGrants=['All',...new Set(cachedExpRows.map(r=>(r['Grant / Fund']||'').trim()).filter(Boolean))];
     activeGrantFilter='All';
-    if(allGrants.length>1){
-      document.getElementById('filter-row-grant').innerHTML=
-        '<span class="filter-label">Grant:</span>'+
-        allGrants.map(g=>`<button class="chip ${g===activeGrantFilter?'grant-on':''}" onclick="setGrantFilter('${g.replace(/'/g,"\\'")}')">🏦 ${g}</button>`).join('');
-    }
+    if(allGrants.length>1)document.getElementById('filter-row-grant').innerHTML='<span class="filter-label">Grant:</span>'+allGrants.map(g=>`<button class="chip ${g==='All'?'on':''}" onclick="setGrantFilter('${g.replace(/'/g,"\\'")}')">${g}</button>`).join('');
+
+    // Cost Type filter
+    activeTypeFilter='All';
+    document.getElementById('filter-row-type').innerHTML='<span class="filter-label">Type:</span>'+[['All','All'],['Capital','Capital'],['Recurring','Recurring']].map(([v,l])=>`<button class="chip ${v==='All'?'on':''}" onclick="setTypeFilter('${v}')">${l}</button>`).join('');
 
     renderExpList();
-  }catch(err){
-    setStatus('dash-status','Could not load: '+err.message,'err');
-    ['d-cats','d-grants','d-list'].forEach(id=>document.getElementById(id).innerHTML='<div class="empty">Load failed — tap Refresh</div>');
-  }
+  }catch(err){setStatus('dash-status','Could not load: '+err.message,'err');['d-cats','d-grants','d-list'].forEach(id=>document.getElementById(id).innerHTML='<div class="empty">Load failed — tap Refresh</div>');}
 }
 
-function setFilter(cat){
-  activeFilter=cat;
-  document.querySelectorAll('#filter-row-cat .chip').forEach(el=>el.classList.toggle('on',el.textContent.trim()===cat));
-  renderExpList();
-}
-function setGrantFilter(g){
-  activeGrantFilter=g;
-  document.querySelectorAll('#filter-row-grant .chip').forEach(el=>el.classList.toggle('grant-on',el.textContent.replace('🏦 ','').trim()===g));
+function setFilter(cat){activeFilter=cat;document.querySelectorAll('#filter-row-cat .chip').forEach(el=>el.classList.toggle('on',el.textContent.trim()===cat));renderExpList();}
+function setGrantFilter(g){activeGrantFilter=g;document.querySelectorAll('#filter-row-grant .chip').forEach(el=>el.classList.toggle('on',el.textContent.trim()===g));renderExpList();}
+function setTypeFilter(t){
+  activeTypeFilter=t;
+  document.querySelectorAll('#filter-row-type .chip').forEach(el=>{
+    el.classList.remove('on','type-capital','type-recurring');
+    if(el.textContent.trim()===t){
+      if(t==='Capital')el.classList.add('type-capital');
+      else if(t==='Recurring')el.classList.add('type-recurring');
+      else el.classList.add('on');
+    }
+  });
   renderExpList();
 }
 function renderExpList(){
-  let filtered=cachedExpRows;
-  if(activeFilter!=='All') filtered=filtered.filter(r=>r['Category']===activeFilter);
-  if(activeGrantFilter!=='All') filtered=filtered.filter(r=>(r['Grant / Fund']||'').trim()===activeGrantFilter);
-  document.getElementById('d-list').innerHTML=filtered.length?filtered.slice(0,30).map(r=>`
-    <div class="item">
-      <div style="min-width:0">
-        <div class="item-desc">${r['Description']||r['Vendor / Payee']||'—'}</div>
-        ${r['Vendor / Payee']&&r['Description']?`<div class="item-sub">${r['Vendor / Payee']}${r['Invoice No.']?' · '+r['Invoice No.']:''}</div>`:''}
-        ${!r['Description']&&r['Invoice No.']?`<div class="item-sub">${r['Invoice No.']}</div>`:''}
-        <div class="item-meta">
-          <span>${r['Date']}</span>
-          ${badge(r['Category']||'')}
-          ${grantBadge((r['Grant / Fund']||'').trim())}
-          ${gstBadge(r['GST Bill?']||'')}
-          ${srcBadge(r['Source']||'Bank')}
-          ${r['Receipt']?'<span>📎</span>':''}
-          ${r['Notes']?'<span style="font-style:italic">'+r['Notes']+'</span>':''}
-        </div>
-      </div>
-      <div class="item-right"><div class="item-amt" style="color:var(--text)">${fmt(parseFloat(r['Amount'])||0)}</div></div>
-    </div>`).join(''):'<div class="empty">No entries match this filter</div>';
+  let f=cachedExpRows;
+  if(activeFilter!=='All')f=f.filter(r=>r['Category']===activeFilter);
+  if(activeGrantFilter!=='All')f=f.filter(r=>(r['Grant / Fund']||'').trim()===activeGrantFilter);
+  if(activeTypeFilter!=='All')f=f.filter(r=>{const ct=(r['Cost Type']||'').trim();return activeTypeFilter==='Capital'?ct==='Capital':ct!=='Capital';});
+  document.getElementById('d-list').innerHTML=f.length?f.slice(0,30).map(r=>`
+    <div class="item"><div style="min-width:0">
+      <div class="item-desc">${r['Description']||r['Vendor / Payee']||'—'}</div>
+      ${r['Vendor / Payee']&&r['Description']?`<div class="item-sub">${r['Vendor / Payee']}${r['Invoice No.']?' · '+r['Invoice No.']:''}</div>`:''}
+      ${!r['Description']&&r['Invoice No.']?`<div class="item-sub">${r['Invoice No.']}</div>`:''}
+      <div class="item-meta"><span>${r['Date']}</span>${badge(r['Category']||'')}${costTypeBadge((r['Cost Type']||'').trim())}${grantBadge((r['Grant / Fund']||'').trim())}${gstBadge(r['GST Bill?']||'')}${srcBadge(r['Source']||'Bank')}${r['Receipt']?'<span>receipt</span>':''}${r['Notes']?'<span style="font-style:italic">'+r['Notes']+'</span>':''}</div>
+    </div><div class="item-right"><div class="item-amt" style="color:var(--text)">${fmt(parseFloat(r['Amount'])||0)}</div></div></div>`).join(''):'<div class="empty">No entries match this filter</div>';
 }
 
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
